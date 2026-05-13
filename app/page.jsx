@@ -32,20 +32,38 @@ export default function Page() {
 
   const currentWeek = getWeek(new Date());
 
+  // ✅ CONFIG (pranzo/cena duplicato)
   const addConfig = () => {
     if (!newFood) return;
 
-    setConfig([
-      ...config,
-      {
-        food: newFood,
-        meal: configMeal,
-        frequency: frequency ? Number(frequency) : null
-      }
-    ]);
+    const newItems = [];
+
+    if (configMeal === "Pranzo" || configMeal === "Cena") {
+      newItems.push(
+        { food: newFood, meal: "Pranzo", frequency: frequency ? Number(frequency) : null },
+        { food: newFood, meal: "Cena", frequency: frequency ? Number(frequency) : null }
+      );
+    } else {
+      newItems.push({ food: newFood, meal: configMeal, frequency: frequency ? Number(frequency) : null });
+    }
+
+    setConfig([...config, ...newItems]);
 
     setNewFood("");
     setFrequency("");
+  };
+
+  // ✅ CONFIRM RESET
+  const clearConfig = () => {
+    if (confirm("Sei sicuro di voler cancellare la configurazione?")) {
+      setConfig([]);
+    }
+  };
+
+  const clearLogs = () => {
+    if (confirm("Sei sicuro di voler cancellare i consumi?")) {
+      setLogs([]);
+    }
   };
 
   const addLog = (foodOverride) => {
@@ -62,9 +80,6 @@ export default function Page() {
     ]);
   };
 
-  const clearConfig = () => setConfig([]);
-  const clearLogs = () => setLogs([]);
-
   const exportExcel = () => {
     const data = logs.map((l) => ({
       Alimento: l.food,
@@ -78,7 +93,6 @@ export default function Page() {
     XLSX.writeFile(wb, "food-tracker.xlsx");
   };
 
-  // ✅ STATS
   const stats = {};
   config.forEach((c) => {
     if (c.frequency) stats[c.food] = { total: 0, frequency: c.frequency };
@@ -92,7 +106,6 @@ export default function Page() {
 
   const availableFoods = config.filter(c => c.meal === meal);
 
-  // ✅ QUICK BUTTONS (top 4 più usati)
   const usageCount = {};
   logs.forEach(l => {
     if (l.meal === meal) {
@@ -105,7 +118,6 @@ export default function Page() {
     .slice(0, 4)
     .map(([food]) => food);
 
-  // ✅ WEEK VIEW
   const weeklyView = {};
   logs.forEach(l => {
     if (getWeek(l.date) === currentWeek) {
@@ -118,19 +130,20 @@ export default function Page() {
   });
 
   return (
-    <div style={{ padding: 16, maxWidth: 500, margin: "auto", fontFamily: "-apple-system" }}>
+    <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
 
-      <h1 style={{ fontSize: 24 }}>🍽 Food Tracker</h1>
+      <h1 style={{ fontSize: 26 }}>🍽 Food Tracker</h1>
 
       {/* MEAL SELECT */}
-      <div style={{ marginBottom: 10 }}>
+      <div style={{ marginBottom: 15 }}>
         {meals.map(m => (
           <button key={m}
             onClick={() => setMeal(m)}
             style={{
-              margin: 4,
-              padding: "8px 12px",
-              borderRadius: 12,
+              margin: 5,
+              padding: "10px 16px",
+              borderRadius: 16,
+              fontSize: 16,
               background: m === meal ? "#007aff" : "#eee",
               color: m === meal ? "white" : "black",
               border: "none"
@@ -141,14 +154,15 @@ export default function Page() {
       </div>
 
       {/* QUICK BUTTONS */}
-      <div style={{ marginBottom: 15 }}>
+      <div style={{ marginBottom: 20 }}>
         {quickFoods.map(food => (
           <button key={food}
             onClick={() => addLog(food)}
             style={{
-              margin: 4,
-              padding: "10px",
-              borderRadius: 14,
+              margin: 6,
+              padding: "14px",
+              borderRadius: 18,
+              fontSize: 16,
               background: "#34c759",
               color: "white",
               border: "none",
@@ -159,28 +173,36 @@ export default function Page() {
         ))}
       </div>
 
-      {/* FALLBACK SELECT */}
-      <select value={selectedFood} onChange={(e) => setSelectedFood(e.target.value)}>
+      {/* SELECT GRANDE */}
+      <select
+        value={selectedFood}
+        onChange={(e) => setSelectedFood(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 14,
+          fontSize: 16,
+          borderRadius: 12,
+          marginBottom: 10
+        }}
+      >
         <option value="">Seleziona alimento</option>
         {availableFoods.map(c => <option key={c.food}>{c.food}</option>)}
       </select>
-      <button onClick={() => addLog()}>+ Aggiungi</button>
 
-      {/* STATS */}
+      <button onClick={() => addLog()} style={{ padding: 12, width: "100%", borderRadius: 12 }}>
+        + Aggiungi
+      </button>
+
       <h2>📊 Settimana</h2>
-      {Object.entries(stats).map(([key, value]) => {
-        const remaining = value.frequency - value.total;
-        return (
-          <div key={key}>
-            {key}: {value.total}/{value.frequency}
-          </div>
-        );
-      })}
+      {Object.entries(stats).map(([key, value]) => (
+        <div key={key}>
+          {key}: {value.total}/{value.frequency}
+        </div>
+      ))}
 
-      {/* WEEK VIEW */}
       <h2>📅 Daily View</h2>
       {Object.entries(weeklyView).map(([day, mealsData]) => (
-        <div key={day} style={{ background: "#f5f5f5", padding: 10, marginBottom: 10, borderRadius: 10 }}>
+        <div key={day} style={{ background: "#f5f5f5", padding: 12, marginBottom: 12, borderRadius: 12 }}>
           <strong>{day}</strong>
           {Object.entries(mealsData).map(([m, foods]) => (
             <div key={m}>{m}: {foods.join(", ") || "-"}</div>
@@ -188,19 +210,18 @@ export default function Page() {
         </div>
       ))}
 
-      {/* CONFIG */}
       <h2>⚙️ Config</h2>
-      <input placeholder="Alimento" value={newFood} onChange={(e) => setNewFood(e.target.value)} />
-      <select value={configMeal} onChange={(e) => setConfigMeal(e.target.value)}>
+      <input placeholder="Alimento" value={newFood} onChange={(e) => setNewFood(e.target.value)} style={{ padding: 12, fontSize: 16 }} />
+      <select value={configMeal} onChange={(e) => setConfigMeal(e.target.value)} style={{ padding: 12, fontSize: 16 }}>
         {meals.map(m => <option key={m}>{m}</option>)}
       </select>
-      <input type="number" placeholder="Frequenza opzionale" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
+      <input type="number" placeholder="Frequenza opzionale" value={frequency} onChange={(e) => setFrequency(e.target.value)} style={{ padding: 12, fontSize: 16 }} />
+
       <button onClick={addConfig}>Aggiungi</button>
       <button onClick={clearConfig}>Reset Config</button>
       <button onClick={clearLogs}>Reset Log</button>
 
-      {/* EXPORT */}
-      <button onClick={exportExcel} style={{ marginTop: 20, width: "100%" }}>
+      <button onClick={exportExcel} style={{ marginTop: 20, width: "100%", padding: 14, borderRadius: 12 }}>
         📥 Export Excel
       </button>
 
