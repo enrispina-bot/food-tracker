@@ -1,25 +1,20 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+"use client";
+import { useState, useEffect } from "react";
 
 export default function FoodTrackerApp() {
   const [food, setFood] = useState("");
   const [frequency, setFrequency] = useState("");
   const [logs, setLogs] = useState([]);
 
-  // ✅ Salvataggio persistente (sicuro, locale)
   useEffect(() => {
     const saved = localStorage.getItem("foodLogs");
     if (saved) setLogs(JSON.parse(saved));
   }, []);
 
-
   useEffect(() => {
     localStorage.setItem("foodLogs", JSON.stringify(logs));
   }, [logs]);
-
 
   const getWeek = (date) => {
     const d = new Date(date);
@@ -32,6 +27,11 @@ export default function FoodTrackerApp() {
     const today = new Date().toISOString().split("T")[0];
     setLogs([...logs, { food, frequency: Number(frequency), date: today }]);
     setFood("");
+  };
+
+  const addQuick = (foodName, freq) => {
+    const today = new Date().toISOString().split("T")[0];
+    setLogs([...logs, { food: foodName, frequency: freq, date: today }]);
   };
 
   const currentWeek = getWeek(new Date());
@@ -47,102 +47,43 @@ export default function FoodTrackerApp() {
   });
 
   return (
-    <div className="p-4 grid gap-4">
-      <h1 className="text-xl font-bold">🍽 Food Tracker</h1>
+    <div style={{ padding: 20, fontFamily: "Arial" }}>
+      <h1>🍽 Food Tracker</h1>
 
-      <Card>
-        <CardContent className="p-4 grid gap-2">
-          <Input
-            placeholder="Alimento"
-            value={food}
-            onChange={(e) => setFood(e.target.value)}
-          />
-          <Input
-            type="number"
-            placeholder="Frequenza settimanale"
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-          />
-          <Button onClick={addEntry}>+ Aggiungi</Button>
-        </CardContent>
-      </Card>
+      <div style={{ marginBottom: 20 }}>
+        <input
+          placeholder="Alimento"
+          value={food}
+          onChange={(e) => setFood(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Frequenza"
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value)}
+        />
+        <button onClick={addEntry}>Aggiungi</button>
+      </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <h2 className="font-semibold mb-2">📊 Questa settimana</h2>
-          {Object.keys(foodStats).length === 0 && (
-            <p>Nessun dato ancora</p>
-          )}
-          {Object.entries(foodStats).map(([key, value]) => {
-            const remaining = value.frequency - value.total;
-            const color =
-              remaining < 0
-                ? "text-red-600"
-                : remaining === 0
-                ? "text-yellow-600"
-                : "text-green-600";
+      <h2>📊 Questa settimana</h2>
 
+      {Object.keys(foodStats).length === 0 && <p>Nessun dato</p>}
 
-            return (
-              <div key={key} className="mb-3">
-                <div className="font-medium">{key}</div>
-                <div className={color}>
-                  {value.total} / {value.frequency} · Rimanenti: {remaining}
-                </div>
-                <Button
-                  className="mt-1"
-                  onClick={() => addQuick(key, value.frequency)}
-                >
-                  +1
-                </Button>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      {Object.entries(foodStats).map(([key, value]) => {
+        const remaining = value.frequency - value.total;
+
+        return (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <strong>{key}</strong>
+            <div>
+              {value.total} / {value.frequency} → Rimanenti: {remaining}
+            </div>
+            <button onClick={() => addQuick(key, value.frequency)}>
+              +1
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
-
-
-  function addQuick(foodName, freq) {
-    const today = new Date().toISOString().split("T")[0];
-    setLogs([...logs, { food: foodName, frequency: freq, date: today }]);
-  }
 }
-
-/*
-✅ COME INSTALLARLA SU IPHONE (SICURO)
-
-1. Pubblica questa app (es. con Vercel o Netlify)
-2. Apri il link in Safari su iPhone
-3. Premi condividi → "Aggiungi a schermata Home"
-
-✅ SICUREZZA
-- Nessun dato viene inviato a server
-- Tutto salvato in localStorage (solo sul tuo dispositivo)
-- Nessun tracking / nessuna API esterna
-
-✅ EXTRA (per app completa)
-Aggiungi file manifest.json nel progetto:
-
-{
-  "name": "Food Tracker",
-  "short_name": "Tracker",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ]
-}
-
-E in index.html:
-/manifest.json
-
-👉 Così diventa una vera PWA installabile
-*/
