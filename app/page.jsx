@@ -1,37 +1,48 @@
-
 "use client";
 import { useState, useEffect } from "react";
 
-export default function FoodTrackerApp() {
+export default function Page() {
   const [food, setFood] = useState("");
   const [frequency, setFrequency] = useState("");
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("foodLogs");
-    if (saved) setLogs(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem("foodLogs");
+      if (saved) setLogs(JSON.parse(saved));
+    } catch (e) {}
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("foodLogs", JSON.stringify(logs));
+    try {
+      localStorage.setItem("foodLogs", JSON.stringify(logs));
+    } catch (e) {}
   }, [logs]);
-
-  const getWeek = (date) => {
-    const d = new Date(date);
-    const onejan = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-  };
 
   const addEntry = () => {
     if (!food || !frequency) return;
-    const today = new Date().toISOString().split("T")[0];
-    setLogs([...logs, { food, frequency: Number(frequency), date: today }]);
+    setLogs([
+      ...logs,
+      { food, frequency: Number(frequency), date: new Date().toISOString() },
+    ]);
     setFood("");
   };
 
   const addQuick = (foodName, freq) => {
-    const today = new Date().toISOString().split("T")[0];
-    setLogs([...logs, { food: foodName, frequency: freq, date: today }]);
+    setLogs([
+      ...logs,
+      { food: foodName, frequency: freq, date: new Date().toISOString() },
+    ]);
+  };
+
+  const getWeek = (date) => {
+    const d = new Date(date);
+    return Math.ceil(
+      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+        new Date(d.getFullYear(), 0, 1).getDay() +
+        1) /
+        7
+    );
   };
 
   const currentWeek = getWeek(new Date());
@@ -47,43 +58,34 @@ export default function FoodTrackerApp() {
   });
 
   return (
-    <div style={{ padding: 20, fontFamily: "Arial" }}>
+    <div style={{ padding: 20 }}>
       <h1>🍽 Food Tracker</h1>
 
-      <div style={{ marginBottom: 20 }}>
-        <input
-          placeholder="Alimento"
-          value={food}
-          onChange={(e) => setFood(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Frequenza"
-          value={frequency}
-          onChange={(e) => setFrequency(e.target.value)}
-        />
-        <button onClick={addEntry}>Aggiungi</button>
-      </div>
+      <input
+        placeholder="Alimento"
+        value={food}
+        onChange={(e) => setFood(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Frequenza"
+        value={frequency}
+        onChange={(e) => setFrequency(e.target.value)}
+      />
+      <button onClick={addEntry}>Aggiungi</button>
 
-      <h2>📊 Questa settimana</h2>
-
-      {Object.keys(foodStats).length === 0 && <p>Nessun dato</p>}
+      <h2>Questa settimana</h2>
 
       {Object.entries(foodStats).map(([key, value]) => {
         const remaining = value.frequency - value.total;
-
         return (
-          <div key={key} style={{ marginBottom: 10 }}>
-            <strong>{key}</strong>
-            <div>
-              {value.total} / {value.frequency} → Rimanenti: {remaining}
-            </div>
-            <button onClick={() => addQuick(key, value.frequency)}>
-              +1
-            </button>
+          <div key={key}>
+            <strong>{key}</strong> → {value.total}/{value.frequency} (restano {remaining})
+            <button onClick={() => addQuick(key, value.frequency)}>+1</button>
           </div>
         );
       })}
     </div>
   );
 }
+
