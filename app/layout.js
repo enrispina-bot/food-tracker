@@ -1,7 +1,6 @@
-
 export const metadata = {
   title: "Food Tracker",
-  description: "App per tracciare alimenti settimanali",
+  description: "App alimentazione",
 };
 
 export default function RootLayout({ children }) {
@@ -11,4 +10,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-``
