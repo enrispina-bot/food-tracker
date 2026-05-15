@@ -1,5 +1,7 @@
-"use client";"use { useState, useEffect } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+
 
 export default function Page() {
 
@@ -28,7 +30,7 @@ export default function Page() {
     if (l) setLogs(JSON.parse(l));
   }, []);
 
-  useEffect(() => localStorage.setItem("config", JSON.stringify(config)), [config);
+  useEffect(() => localStorage.setItem("config", JSON.stringify(config)), [config]);
   useEffect(() => localStorage.setItem("logs", JSON.stringify(logs)), [logs]);
 
   const formatDate = (date) => new Date(date).toISOString().split("T")[0];
