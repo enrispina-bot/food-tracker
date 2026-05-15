@@ -22,11 +22,17 @@ export default function Page() {
 
   const meals = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
+  // ✅ LOAD SAFE
   useEffect(() => {
-    const c = localStorage.getItem("config");
-    const l = localStorage.getItem("logs");
-    if (c) setConfig(JSON.parse(c));
-    if (l) setLogs(JSON.parse(l));
+    try {
+      const c = localStorage.getItem("config");
+      const l = localStorage.getItem("logs");
+
+      if (c) setConfig(JSON.parse(c));
+      if (l) setLogs(JSON.parse(l));
+    } catch {
+      console.log("Errore localStorage");
+    }
   }, []);
 
   useEffect(() => {
@@ -37,30 +43,44 @@ export default function Page() {
     localStorage.setItem("logs", JSON.stringify(logs));
   }, [logs]);
 
-  const formatDate = (date) => new Date(date).toISOString().split("T")[0];
+  const formatDate = (date) =>
+    new Date(date).toISOString().split("T")[0];
+
   const today = formatDate(new Date());
 
   const getWeek = (date) => {
     const d = new Date(date);
-    return Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-      new Date(d.getFullYear(), 0, 1).getDay() + 1) / 7);
+    return Math.ceil(
+      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+        new Date(d.getFullYear(), 0, 1).getDay() +
+        1) /
+        7
+    );
   };
 
   const currentWeek = getWeek(new Date());
 
-  // ✅ STATS
+  // ✅ STATS SAFE
   const stats = {};
-  config.forEach(c => {
-    if (c.frequency) stats[c.food] = { total: 0, frequency: c.frequency };
+
+  config.forEach((c) => {
+    if (c && c.food && c.frequency) {
+      stats[c.food] = { total: 0, frequency: c.frequency };
+    }
   });
 
-  logs.forEach(l => {
-    if (getWeek(l.date) === currentWeek && stats[l.food]) {
+  logs.forEach((l) => {
+    if (
+      l &&
+      l.food &&
+      stats[l.food] &&
+      getWeek(l.date) === currentWeek
+    ) {
       stats[l.food].total++;
     }
   });
 
-  // ✅ COLORI
+  // ✅ COLOR SAFE
   const getColor = (food) => {
     if (!stats[food]) return "#34c759";
 
@@ -71,11 +91,14 @@ export default function Page() {
     return "#34c759";
   };
 
-  const availableFoods = config.filter(c => c.meal === meal);
+  const availableFoods = config.filter(
+    (c) => c && c.meal === meal
+  );
 
+  // ✅ QUICK SAFE
   const usage = {};
-  logs.forEach(l => {
-    if (l.meal === meal) {
+  logs.forEach((l) => {
+    if (l && l.meal === meal) {
       usage[l.food] = (usage[l.food] || 0) + 1;
     }
   });
@@ -84,182 +107,157 @@ export default function Page() {
     .sort((a, b) => usage[b] - usage[a])
     .slice(0, 4);
 
-  // ✅ IMPORT
-  const importFromFile = (e) => {
-    const file = e.target.files[0];
+  const addLog = (foodOverride) => {
+    const f = foodOverride || selectedFood;
+    if (!f) return;
 
-    if (!file) return setMessage("❌ Nessun file selezionato");
-    if (!file.name.endsWith(".txt"))
-      return setMessage("❌ File non valido (.txt richiesto)");
-
-    if (!confirm("Sovrascrivere configurazione?")) return;
-
-    const reader = new FileReader();
-
-    reader.onload = (ev) => {
-      try {
-        const lines = ev.target.result.split("\n");
-        let currentMeal = null;
-        const newConfig = [];
-
-        lines.forEach(line => {
-          line = line.trim();
-          if (!line) return;
-
-          if (meals.includes(line)) {
-            currentMeal = line;
-            return;
-          }
-
-          const parts = line.split(" ");
-          const food = parts[0];
-          const freq = parts[1] ? Number(parts[1]) : null;
-
-          if (!currentMeal) throw Error();
-
-          if (currentMeal === "Pranzo" || currentMeal === "Cena") {
-            newConfig.push(
-              { food, meal: "Pranzo", frequency: freq },
-              { food, meal: "Cena", frequency: freq }
-            );
-          } else {
-            newConfig.push({ food, meal: currentMeal, frequency: freq });
-          }
-        });
-
-        setConfig(newConfig);
-        setMessage("✅ Configurazione importata");
-      } catch {
-        setMessage("❌ Errore nel file");
-      }
-    };
-
-    reader.readAsText(file);
+    setLogs([
+      ...logs,
+      { food: f, meal, date: new Date().toISOString() },
+    ]);
   };
 
   const addConfig = () => {
     if (!newFood) return;
 
+    const freqNum = frequency ? Number(frequency) : null;
+
+    if (freqNum !== null && isNaN(freqNum)) {
+      setMessage("❌ Frequenza non valida");
+      return;
+    }
+
     const items =
       configMeal === "Pranzo" || configMeal === "Cena"
         ? [
-            { food: newFood, meal: "Pranzo", frequency: Number(frequency) || null },
-            { food: newFood, meal: "Cena", frequency: Number(frequency) || null }
+            { food: newFood, meal: "Pranzo", frequency: freqNum },
+            { food: newFood, meal: "Cena", frequency: freqNum },
           ]
-        : [{ food: newFood, meal: configMeal, frequency: Number(frequency) || null }];
+        : [
+            {
+              food: newFood,
+              meal: configMeal,
+              frequency: freqNum,
+            },
+          ];
 
     setConfig([...config, ...items]);
     setNewFood("");
     setFrequency("");
   };
 
-  const clearConfig = () => confirm("Reset configurazione?") && setConfig([]);
-  const clearLogs = () => confirm("Reset consumi?") && setLogs([]);
+  const clearConfig = () =>
+    confirm("Reset configurazione?") && setConfig([]);
 
-  const addLog = (foodOverride) => {
-    const f = foodOverride || selectedFood;
-    if (!f) return;
+  const clearLogs = () =>
+    confirm("Reset consumi?") && setLogs([]);
 
-    setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
+  const exportExcel = () => {
+    const data = logs.map((l) => ({
+      Alimento: l.food,
+      Pasto: l.meal,
+      Data: new Date(l.date).toLocaleDateString(),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Tracker");
+
+    XLSX.writeFile(wb, "food-tracker.xlsx");
   };
 
   const selectedDayLogs = logs.filter(
-    l => formatDate(l.date) === (selectedDate || today)
+    (l) => formatDate(l.date) === (selectedDate || today)
   );
 
-  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
-  selectedDayLogs.forEach(l => dayView[l.meal].push(l.food));
+  const dayView = {
+    Colazione: [],
+    Spuntino: [],
+    Pranzo: [],
+    Cena: [],
+  };
+
+  selectedDayLogs.forEach((l) => {
+    if (l && dayView[l.meal]) {
+      dayView[l.meal].push(l.food);
+    }
+  });
 
   const infoImages = {
     Colazione: "/colazione.png",
     Spuntino: "/spuntino.png",
     Pranzo: "/pranzo.png",
-    Cena: "/cena.png"
+    Cena: "/cena.png",
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
+    <div style={{ padding: 20, maxWidth: 520, margin: "auto" }}>
 
       <h1>🍽 Food Tracker</h1>
 
-      {message && <div style={{ marginBottom: 10 }}>{message}</div>}
+      {message && <div>{message}</div>}
 
       <button onClick={() => setShowCalendar(!showCalendar)}>📅</button>
       <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
 
       {showCalendar && (
-        <input type="date"
+        <input
+          type="date"
           value={selectedDate || today}
           onChange={(e) => setSelectedDate(e.target.value)}
         />
       )}
 
-      {/* ✅ PASTI + INFO */}
-      <div style={{ marginBottom: 10 }}>
-        {meals.map(m => (
-          <button key={m}
-            onClick={() => setMeal(m)}
-            style={{ margin: 5, padding: 12 }}>
+      {/* MEALS + INFO */}
+      <div>
+        {meals.map((m) => (
+          <button key={m} onClick={() => setMeal(m)}>
             {m}
           </button>
         ))}
-        <button
-          onClick={() => setShowInfo(!showInfo)}
-          style={{ marginLeft: 10, fontSize: 18 }}
-        >
-          ℹ️
-        </button>
+        <button onClick={() => setShowInfo(!showInfo)}>ℹ️</button>
       </div>
 
-      {showInfo && (
-        <img
-          src={infoImages[meal]}
-          style={{ width: "100%", borderRadius: 12, marginBottom: 10 }}
-        />
-      )}
+      {showInfo && <img src={infoImages[meal]} style={{ width: "100%" }} />}
 
-      {/* ✅ QUICK COLORATI */}
+      {/* QUICK */}
       <div>
-        {quickFoods.map(food => (
-          <button key={food}
-            onClick={() => addLog(food)}
+        {quickFoods.map((f) => (
+          <button
+            key={f}
+            onClick={() => addLog(f)}
             style={{
-              background: getColor(food),
+              background: getColor(f),
               color: "white",
               margin: 5,
-              padding: 16,
-              borderRadius: 12
-            }}>
-            + {food}
+              padding: 14,
+            }}
+          >
+            + {f}
           </button>
         ))}
       </div>
 
-      {/* ✅ SELECT GRANDE */}
       <select
         value={selectedFood}
         onChange={(e) => setSelectedFood(e.target.value)}
-        style={{ width: "100%", padding: 18, fontSize: 18 }}
+        style={{ width: "100%", padding: 16 }}
       >
         <option value="">Seleziona alimento</option>
-        {availableFoods.map(c => (
+        {availableFoods.map((c) => (
           <option key={c.food}>{c.food}</option>
         ))}
       </select>
 
-      {/* ✅ BUTTON GRANDE */}
-      <button
-        onClick={() => addLog()}
-        style={{ width: "100%", padding: 18, fontSize: 18 }}
-      >
-        + Aggiungi
+      <button onClick={() => addLog()} style={{ width: "100%", padding: 16 }}>
+        Aggiungi
       </button>
 
-      {/* ✅ CONTATORE */}
+      {/* CONTATORE */}
       <h2>📊 Frequenze</h2>
-      {Object.entries(stats).map(([food, val]) => (
-        <div key={food} style={{ color: getColor(food), fontWeight: "bold" }}>
-          {food} {val.total}/{val.frequency}
+      {Object.entries(stats).map(([f, v]) => (
+        <div key={f} style={{ color: getColor(f) }}>
+          {f} {v.total}/{v.frequency}
         </div>
       ))}
 
@@ -268,39 +266,34 @@ export default function Page() {
         <div key={m}>{m}: {foods.join(", ") || "-"}</div>
       ))}
 
-      {/* ✅ CONFIG */}
+      {/* ✅ CONFIG SAFE */}
       {showConfig && (
         <div>
 
-          <input value={newFood}
+          <input
+            value={newFood}
             onChange={(e) => setNewFood(e.target.value)}
-            style={{ width: "100%", padding: 16 }}
           />
 
-          <select value={configMeal}
+          <select
+            value={configMeal}
             onChange={(e) => setConfigMeal(e.target.value)}
-            style={{ width: "100%", padding: 16 }}
           >
-            {meals.map(m => <option key={m}>{m}</option>)}
+            {meals.map((m) => (
+              <option key={m}>{m}</option>
+            ))}
           </select>
 
-          <input type="number"
+          <input
+            type="number"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value)}
-            style={{ width: "100%", padding: 16 }}
           />
 
-          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
-            ➕ Aggiungi
-          </button>
+          <button onClick={addConfig}>Aggiungi</button>
 
           <button onClick={clearConfig}>Reset Config</button>
           <button onClick={clearLogs}>Reset Log</button>
-
-          <label style={{ display: "block", background: "#007aff", color: "white", padding: 12 }}>
-            📄 Importa file
-            <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
-          </label>
 
           <button onClick={exportExcel}>Export</button>
         </div>
