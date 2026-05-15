@@ -37,19 +37,13 @@ export default function Page() {
     localStorage.setItem("logs", JSON.stringify(logs));
   }, [logs]);
 
-  const formatDate = (date) =>
-    new Date(date).toISOString().split("T")[0];
-
+  const formatDate = (date) => new Date(date).toISOString().split("T")[0];
   const today = formatDate(new Date());
 
   const getWeek = (date) => {
     const d = new Date(date);
-    return Math.ceil(
-      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-        new Date(d.getFullYear(), 0, 1).getDay() +
-        1) /
-        7
-    );
+    return Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+      new Date(d.getFullYear(), 0, 1).getDay() + 1) / 7);
   };
 
   const currentWeek = getWeek(new Date());
@@ -69,7 +63,6 @@ export default function Page() {
   // ✅ COLORI
   const getColor = (food) => {
     if (!stats[food]) return "#34c759";
-
     const { total, frequency } = stats[food];
 
     if (total >= frequency) return "#ff3b30";
@@ -80,9 +73,7 @@ export default function Page() {
   // ✅ QUICK
   const usage = {};
   logs.forEach(l => {
-    if (l.meal === meal) {
-      usage[l.food] = (usage[l.food] || 0) + 1;
-    }
+    if (l.meal === meal) usage[l.food] = (usage[l.food] || 0) + 1;
   });
 
   const quickFoods = Object.keys(usage)
@@ -143,16 +134,69 @@ export default function Page() {
     reader.readAsText(file);
   };
 
+  // ✅ EXPORT TXT CONFIG
+  const exportConfigTxt = () => {
+    if (config.length === 0) {
+      setMessage("❌ Nessuna configurazione da esportare");
+      return;
+    }
+
+    const grouped = {
+      Colazione: [],
+      Spuntino: [],
+      Pranzo: [],
+      Cena: []
+    };
+
+    config.forEach(c => {
+      if (!grouped[c.meal]) return;
+
+      if (
+        c.meal === "Cena" &&
+        config.find(x => x.food === c.food && x.meal === "Pranzo")
+      ) return;
+
+      grouped[c.meal].push(c);
+    });
+
+    let text = "";
+
+    Object.entries(grouped).forEach(([meal, foods]) => {
+      if (foods.length === 0) return;
+
+      text += meal + "\n";
+
+      foods.forEach(f => {
+        text += f.food;
+        if (f.frequency) text += " " + f.frequency;
+        text += "\n";
+      });
+
+      text += "\n";
+    });
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config_food_tracker.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    setMessage("✅ File configurazione salvato");
+  };
+
+  // ✅ LOG
   const addLog = (foodOverride) => {
     const f = foodOverride || selectedFood;
     if (!f) return;
 
-    setLogs([
-      ...logs,
-      { food: f, meal, date: new Date().toISOString() },
-    ]);
+    setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
   };
 
+  // ✅ CONFIG
   const addConfig = () => {
     if (!newFood) return;
 
@@ -175,24 +219,11 @@ export default function Page() {
   const clearLogs = () => confirm("Reset log?") && setLogs([]);
 
   const selectedDayLogs = logs.filter(
-    (l) => formatDate(l.date) === (selectedDate || today)
+    l => formatDate(l.date) === (selectedDate || today)
   );
 
-  const dayView = {
-    Colazione: [],
-    Spuntino: [],
-    Pranzo: [],
-    Cena: []
-  };
-
+  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
   selectedDayLogs.forEach(l => dayView[l.meal].push(l.food));
-
-  const infoImages = {
-    Colazione: "/colazione.png",
-    Spuntino: "/spuntino.png",
-    Pranzo: "/pranzo.png",
-    Cena: "/cena.png"
-  };
 
   return (
     <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
@@ -204,44 +235,25 @@ export default function Page() {
       <button onClick={() => setShowCalendar(!showCalendar)}>📅</button>
       <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
 
-      {showCalendar && (
-        <input
-          type="date"
-          value={selectedDate || today}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
-      )}
-
-      {/* ✅ BOTTONI PASTI MIGLIORATI */}
+      {/* ✅ MEALS STYLE iOS */}
       <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 10 }}>
         {meals.map(m => (
-          <button
-            key={m}
+          <button key={m}
             onClick={() => setMeal(m)}
             style={{
               flex: "1",
               margin: 5,
               padding: 16,
               borderRadius: 18,
-              fontSize: 16,
-              border: "none",
               background: m === meal ? "#007aff" : "#eee",
-              color: m === meal ? "white" : "black",
-              fontWeight: m === meal ? "bold" : "normal"
-            }}
-          >
+              color: m === meal ? "white" : "black"
+            }}>
             {m}
           </button>
         ))}
-
-        <button onClick={() => setShowInfo(!showInfo)} style={{ marginLeft: 10 }}>
-          ℹ️
-        </button>
       </div>
 
-      {showInfo && infoImages[meal]}
-
-      {/* QUICK COLORATI */}
+      {/* QUICK */}
       <div>
         {quickFoods.map(food => (
           <button key={food}
@@ -258,21 +270,16 @@ export default function Page() {
         ))}
       </div>
 
-      <select
-        value={selectedFood}
+      <select value={selectedFood}
         onChange={(e) => setSelectedFood(e.target.value)}
-        style={{ width: "100%", padding: 18, fontSize: 18 }}
-      >
+        style={{ width: "100%", padding: 18 }}>
         <option value="">Seleziona alimento</option>
         {availableFoods.map(c => (
           <option key={c.food}>{c.food}</option>
         ))}
       </select>
 
-      <button
-        onClick={() => addLog()}
-        style={{ width: "100%", padding: 18, fontSize: 18 }}
-      >
+      <button onClick={() => addLog()} style={{ width: "100%", padding: 18 }}>
         + Aggiungi
       </button>
 
@@ -289,28 +296,55 @@ export default function Page() {
         <div key={m}>{m}: {foods.join(", ") || "-"}</div>
       ))}
 
+      {/* CONFIG */}
       {showConfig && (
         <div>
 
-          <input value={newFood} onChange={(e) => setNewFood(e.target.value)} />
+          <input value={newFood}
+            onChange={(e) => setNewFood(e.target.value)}
+            style={{ width: "100%", padding: 14 }}
+          />
 
-          <select value={configMeal} onChange={(e) => setConfigMeal(e.target.value)}>
+          <select value={configMeal}
+            onChange={(e) => setConfigMeal(e.target.value)}
+            style={{ width: "100%", padding: 14 }}>
             {meals.map(m => <option key={m}>{m}</option>)}
           </select>
 
-          <input type="number" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
+          <input type="number"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            style={{ width: "100%", padding: 14 }}
+          />
 
-          <button onClick={addConfig}>Aggiungi</button>
+          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
+            ➕ Aggiungi
+          </button>
 
           <button onClick={clearConfig}>Reset Config</button>
           <button onClick={clearLogs}>Reset Log</button>
 
-          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 12 }}>
+          {/* IMPORT */}
+          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 14 }}>
             📄 Importa file
             <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
           </label>
 
-          <button>Export</button>
+          {/* EXPORT TXT */}
+          <button
+            onClick={exportConfigTxt}
+            style={{
+              marginTop: 10,
+              width: "100%",
+              padding: 14,
+              background: "#34c759",
+              color: "white",
+              borderRadius: 10,
+              border: "none"
+            }}>
+            💾 Esporta configurazione (.txt)
+          </button>
+
         </div>
       )}
 
