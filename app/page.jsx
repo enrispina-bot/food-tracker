@@ -35,7 +35,6 @@ export default function Page() {
   const formatDate = (date) => new Date(date).toISOString().split("T")[0];
   const today = formatDate(new Date());
 
-  // ✅ STATS
   const getWeek = (date) => {
     const d = new Date(date);
     return Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
@@ -44,6 +43,7 @@ export default function Page() {
 
   const currentWeek = getWeek(new Date());
 
+  // ✅ STATS
   const stats = {};
   config.forEach(c => {
     if (c?.frequency) stats[c.food] = { total: 0, frequency: c.frequency };
@@ -75,16 +75,6 @@ export default function Page() {
     .slice(0, 4);
 
   const availableFoods = config.filter(c => c.meal === meal);
-
-  // ✅ CALENDAR VIEW
-  const selectedDayLogs = logs.filter(
-    (l) => formatDate(l.date) === (selectedDate || today)
-  );
-
-  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
-  selectedDayLogs.forEach((l) => {
-    dayView[l.meal].push(l.food);
-  });
 
   // ✅ IMPORT TXT
   const importFromFile = (e) => {
@@ -129,9 +119,9 @@ export default function Page() {
         });
 
         setConfig(newConfig);
-        setMessage("✅ Config importata");
+        setMessage("✅ Config importata con successo");
       } catch {
-        setMessage("❌ Errore file");
+        setMessage("❌ Errore nel file");
       }
     };
 
@@ -140,8 +130,12 @@ export default function Page() {
 
   // ✅ EXPORT CONFIG TXT
   const exportConfigTxt = () => {
-    let text = "";
+    if (config.length === 0) {
+      setMessage("❌ Nessuna configurazione");
+      return;
+    }
 
+    let text = "";
     meals.forEach(meal => {
       const items = config.filter(c => c.meal === meal);
       if (items.length === 0) return;
@@ -153,17 +147,25 @@ export default function Page() {
       text += "\n";
     });
 
-    const blob = new Blob([text]);
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = "config.txt";
     a.click();
 
+    URL.revokeObjectURL(url);
     setMessage("✅ Config salvata");
   };
 
-  // ✅ EXPORT LOG EXCEL
+  // ✅ EXPORT EXCEL LOG
   const exportLogsExcel = () => {
+    if (logs.length === 0) {
+      setMessage("❌ Nessun log da esportare");
+      return;
+    }
+
     const data = logs.map(l => ({
       Data: new Date(l.date).toLocaleDateString(),
       Pasto: l.meal,
@@ -175,6 +177,8 @@ export default function Page() {
     XLSX.utils.book_append_sheet(wb, ws, "Log");
 
     XLSX.writeFile(wb, "food_log.xlsx");
+
+    setMessage("✅ Excel esportato");
   };
 
   const addLog = (f) => {
@@ -200,6 +204,13 @@ export default function Page() {
     setFrequency("");
   };
 
+  const selectedDayLogs = logs.filter(
+    l => formatDate(l.date) === (selectedDate || today)
+  );
+
+  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
+  selectedDayLogs.forEach(l => dayView[l.meal].push(l.food));
+
   const infoImages = {
     Colazione: "/colazione.png",
     Spuntino: "/spuntino.png",
@@ -208,22 +219,13 @@ export default function Page() {
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 520, margin: "auto" }}>
+    <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
 
       <h1>🍽 Food Tracker</h1>
 
       {message && <div>{message}</div>}
 
-      <button onClick={() => setShowCalendar(!showCalendar)}>📅 Calendario</button>
-      <button onClick={() => setShowConfig(!showConfig)}>⚙️ Config</button>
-
-      {showCalendar && (
-        <input
-          type="date"
-          value={selectedDate || today}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
-      )}
+      <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
 
       {/* MEALS */}
       <div style={{ display: "flex", flexWrap: "wrap" }}>
@@ -231,11 +233,11 @@ export default function Page() {
           <button key={m} onClick={() => setMeal(m)}
             style={{
               flex: 1,
-              padding: 16,
               margin: 5,
+              padding: 16,
+              borderRadius: 18,
               background: m === meal ? "#007aff" : "#eee",
-              color: m === meal ? "white" : "black",
-              borderRadius: 18
+              color: m === meal ? "white" : "black"
             }}>
             {m}
           </button>
@@ -250,28 +252,32 @@ export default function Page() {
         {quickFoods.map(f => (
           <button key={f}
             onClick={() => addLog(f)}
-            style={{ background: getColor(f), color: "white" }}>
+            style={{
+              background: getColor(f),
+              color: "white",
+              padding: 14,
+              margin: 5,
+              borderRadius: 10
+            }}>
             + {f}
           </button>
         ))}
       </div>
 
-      <select value={selectedFood} onChange={(e) => setSelectedFood(e.target.value)}>
+      <select value={selectedFood}
+        onChange={(e) => setSelectedFood(e.target.value)}
+        style={{ width: "100%", padding: 18 }}>
         <option value="">Seleziona alimento</option>
         {availableFoods.map(c => <option key={c.food}>{c.food}</option>)}
       </select>
 
-      <button onClick={() => addLog(selectedFood)}>+ Aggiungi</button>
-
-      {/* 📅 DAY VIEW */}
-      <h2>📅 Giorno</h2>
-      {Object.entries(dayView).map(([m, foods]) => (
-        <div key={m}>{m}: {foods.join(", ") || "-"}</div>
-      ))}
+      <button onClick={() => addLog(selectedFood)} style={{ width: "100%", padding: 18 }}>
+        + Aggiungi
+      </button>
 
       {/* CONFIG */}
       {showConfig && (
-        <div>
+        <div style={{ marginTop: 20 }}>
 
           <label style={btnStyle}>
             📄 Importa file
@@ -285,6 +291,7 @@ export default function Page() {
           <button onClick={exportLogsExcel} style={btnStyle}>
             📊 Esporta log (Excel)
           </button>
+
         </div>
       )}
 
@@ -301,5 +308,6 @@ const btnStyle = {
   fontSize: 16,
   background: "#007aff",
   color: "white",
+  border: "none",
   borderRadius: 12
 };
