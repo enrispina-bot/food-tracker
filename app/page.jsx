@@ -189,34 +189,14 @@ export default function Page() {
     setMessage("✅ File configurazione salvato");
   };
 
-  // ✅ ✅ NUOVA FUNZIONE EXPORT LOG EXCEL
-  const exportLogsExcel = () => {
-    if (logs.length === 0) {
-      setMessage("❌ Nessun log da esportare");
-      return;
-    }
-
-    const data = logs.map((l) => ({
-      Data: new Date(l.date).toLocaleDateString(),
-      Pasto: l.meal,
-      Alimento: l.food
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Log");
-
-    XLSX.writeFile(wb, "food_logs.xlsx");
-
-    setMessage("✅ Log esportati in Excel");
-  };
-
+  // ✅ LOG
   const addLog = (foodOverride) => {
     const f = foodOverride || selectedFood;
     if (!f) return;
     setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
   };
 
+  // ✅ CONFIG
   const addConfig = () => {
     if (!newFood) return;
 
@@ -252,20 +232,6 @@ export default function Page() {
     Cena: "/cena.png"
   };
 
-  // ✅ STILE UNICO BOTTONI
-  const btnStyle = {
-    display: "block",
-    width: "100%",
-    padding: 14,
-    marginTop: 10,
-    textAlign: "center",
-    fontSize: 16,
-    background: "#007aff",
-    color: "white",
-    border: "none",
-    borderRadius: 12
-  };
-
   return (
     <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
       <h1>🍽 Food Tracker</h1>
@@ -298,6 +264,7 @@ export default function Page() {
         </button>
       </div>
 
+      {/* ✅ IMMAGINE INFO */}
       {showInfo && (
         <div style={{ marginBottom: 10 }}>
           {infoImages[meal]}
@@ -323,7 +290,11 @@ export default function Page() {
         ))}
       </div>
 
-      <select value={selectedFood} onChange={(e) => setSelectedFood(e.target.value)} style={{ width: "100%", padding: 18 }}>
+      <select
+        value={selectedFood}
+        onChange={(e) => setSelectedFood(e.target.value)}
+        style={{ width: "100%", padding: 18 }}
+      >
         <option value="">Seleziona alimento</option>
         {availableFoods.map((c) => (
           <option key={c.food}>{c.food}</option>
@@ -341,24 +312,56 @@ export default function Page() {
         </div>
       ))}
 
+      <h2>📅 Giorno</h2>
+      {Object.entries(dayView).map(([m, foods]) => (
+        <div key={m}>
+          {m}: {foods.join(", ") || "-"}
+        </div>
+      ))}
+
       {/* CONFIG */}
       {showConfig && (
         <div>
+          <input
+            value={newFood}
+            onChange={(e) => setNewFood(e.target.value)}
+            style={{ width: "100%", padding: 14 }}
+          />
 
-          <label style={btnStyle}>
+          <select
+            value={configMeal}
+            onChange={(e) => setConfigMeal(e.target.value)}
+            style={{ width: "100%", padding: 14 }}
+          >
+            {meals.map((m) => (
+              <option key={m}>{m}</option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            style={{ width: "100%", padding: 14 }}
+          />
+
+          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
+            ➕ Aggiungi
+          </button>
+
+          <button onClick={clearConfig}>Reset Config</button>
+          <button onClick={clearLogs}>Reset Log</button>
+
+          {/* IMPORT */}
+          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 14 }}>
             📄 Importa file
             <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
           </label>
 
-          <button onClick={exportConfigTxt} style={btnStyle}>
+          {/* EXPORT */}
+          <button onClick={exportConfigTxt} style={{ marginTop: 10, width: "100%", padding: 14, background: "#34c759", color: "white" }}>
             💾 Esporta configurazione (.txt)
           </button>
-
-          {/* ✅ NUOVO BOTTONE */}
-          <button onClick={exportLogsExcel} style={btnStyle}>
-            📊 Esporta log (Excel)
-          </button>
-
         </div>
       )}
     </div>
