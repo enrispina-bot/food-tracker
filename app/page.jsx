@@ -37,13 +37,19 @@ export default function Page() {
     localStorage.setItem("logs", JSON.stringify(logs));
   }, [logs]);
 
-  const formatDate = (date) => new Date(date).toISOString().split("T")[0];
+  const formatDate = (date) =>
+    new Date(date).toISOString().split("T")[0];
+
   const today = formatDate(new Date());
 
   const getWeek = (date) => {
     const d = new Date(date);
-    return Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-      new Date(d.getFullYear(), 0, 1).getDay() + 1) / 7);
+    return Math.ceil(
+      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+        new Date(d.getFullYear(), 0, 1).getDay() +
+        1) /
+        7
+    );
   };
 
   const currentWeek = getWeek(new Date());
@@ -74,7 +80,9 @@ export default function Page() {
   // ✅ QUICK
   const usage = {};
   logs.forEach(l => {
-    if (l.meal === meal) usage[l.food] = (usage[l.food] || 0) + 1;
+    if (l.meal === meal) {
+      usage[l.food] = (usage[l.food] || 0) + 1;
+    }
   });
 
   const quickFoods = Object.keys(usage)
@@ -135,12 +143,14 @@ export default function Page() {
     reader.readAsText(file);
   };
 
-  // ✅ ADD
   const addLog = (foodOverride) => {
     const f = foodOverride || selectedFood;
     if (!f) return;
 
-    setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
+    setLogs([
+      ...logs,
+      { food: f, meal, date: new Date().toISOString() },
+    ]);
   };
 
   const addConfig = () => {
@@ -168,7 +178,13 @@ export default function Page() {
     (l) => formatDate(l.date) === (selectedDate || today)
   );
 
-  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
+  const dayView = {
+    Colazione: [],
+    Spuntino: [],
+    Pranzo: [],
+    Cena: []
+  };
+
   selectedDayLogs.forEach(l => dayView[l.meal].push(l.food));
 
   const infoImages = {
@@ -179,7 +195,7 @@ export default function Page() {
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 520, margin: "auto" }}>
+    <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
 
       <h1>🍽 Food Tracker</h1>
 
@@ -189,20 +205,41 @@ export default function Page() {
       <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
 
       {showCalendar && (
-        <input type="date"
+        <input
+          type="date"
           value={selectedDate || today}
           onChange={(e) => setSelectedDate(e.target.value)}
         />
       )}
 
-      <div>
+      {/* ✅ BOTTONI PASTI MIGLIORATI */}
+      <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 10 }}>
         {meals.map(m => (
-          <button key={m} onClick={() => setMeal(m)}>{m}</button>
+          <button
+            key={m}
+            onClick={() => setMeal(m)}
+            style={{
+              flex: "1",
+              margin: 5,
+              padding: 16,
+              borderRadius: 18,
+              fontSize: 16,
+              border: "none",
+              background: m === meal ? "#007aff" : "#eee",
+              color: m === meal ? "white" : "black",
+              fontWeight: m === meal ? "bold" : "normal"
+            }}
+          >
+            {m}
+          </button>
         ))}
-        <button onClick={() => setShowInfo(!showInfo)}>ℹ️</button>
+
+        <button onClick={() => setShowInfo(!showInfo)} style={{ marginLeft: 10 }}>
+          ℹ️
+        </button>
       </div>
 
-      {showInfo && <img src={infoImages[meal]} style={{ width: "100%" }} />}
+      {showInfo && infoImages[meal]}
 
       {/* QUICK COLORATI */}
       <div>
@@ -221,16 +258,21 @@ export default function Page() {
         ))}
       </div>
 
-      <select value={selectedFood}
+      <select
+        value={selectedFood}
         onChange={(e) => setSelectedFood(e.target.value)}
-        style={{ width: "100%", padding: 18 }}>
+        style={{ width: "100%", padding: 18, fontSize: 18 }}
+      >
         <option value="">Seleziona alimento</option>
         {availableFoods.map(c => (
           <option key={c.food}>{c.food}</option>
         ))}
       </select>
 
-      <button onClick={() => addLog()} style={{ width: "100%", padding: 18 }}>
+      <button
+        onClick={() => addLog()}
+        style={{ width: "100%", padding: 18, fontSize: 18 }}
+      >
         + Aggiungi
       </button>
 
@@ -247,50 +289,25 @@ export default function Page() {
         <div key={m}>{m}: {foods.join(", ") || "-"}</div>
       ))}
 
-      {/* CONFIG */}
       {showConfig && (
         <div>
 
-          <input value={newFood}
-            onChange={(e) => setNewFood(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
+          <input value={newFood} onChange={(e) => setNewFood(e.target.value)} />
 
-          <select value={configMeal}
-            onChange={(e) => setConfigMeal(e.target.value)}
-            style={{ width: "100%", padding: 14 }}>
+          <select value={configMeal} onChange={(e) => setConfigMeal(e.target.value)}>
             {meals.map(m => <option key={m}>{m}</option>)}
           </select>
 
-          <input type="number"
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
+          <input type="number" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
 
-          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
-            ➕ Aggiungi
-          </button>
+          <button onClick={addConfig}>Aggiungi</button>
 
           <button onClick={clearConfig}>Reset Config</button>
           <button onClick={clearLogs}>Reset Log</button>
 
-          {/* ✅ IMPORT RIPRISTINATO */}
-          <label style={{
-            display: "block",
-            marginTop: 10,
-            background: "#007aff",
-            color: "white",
-            padding: 14,
-            textAlign: "center"
-          }}>
-            📄 Importa da file
-            <input
-              type="file"
-              accept=".txt"
-              onChange={importFromFile}
-              style={{ display: "none" }}
-            />
+          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 12 }}>
+            📄 Importa file
+            <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
           </label>
 
           <button>Export</button>
