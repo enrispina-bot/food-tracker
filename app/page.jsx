@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function Page() {
+
   const [config, setConfig] = useState([]);
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
@@ -36,29 +37,24 @@ export default function Page() {
 
   const getWeek = (date) => {
     const d = new Date(date);
-    return Math.ceil(
-      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-        new Date(d.getFullYear(), 0, 1).getDay() +
-        1) /
-        7
-    );
+    return Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+      new Date(d.getFullYear(), 0, 1).getDay() + 1) / 7);
   };
 
   const currentWeek = getWeek(new Date());
 
   // ✅ STATS
   const stats = {};
-  config.forEach((c) => {
+  config.forEach(c => {
     if (c?.frequency) stats[c.food] = { total: 0, frequency: c.frequency };
   });
 
-  logs.forEach((l) => {
+  logs.forEach(l => {
     if (stats[l.food] && getWeek(l.date) === currentWeek) {
       stats[l.food].total++;
     }
   });
 
-  // ✅ COLORI
   const getColor = (food) => {
     if (!stats[food]) return "#34c759";
     const { total, frequency } = stats[food];
@@ -70,17 +66,15 @@ export default function Page() {
 
   // ✅ QUICK
   const usage = {};
-  logs.forEach((l) => {
-    if (l.meal === meal) {
-      usage[l.food] = (usage[l.food] || 0) + 1;
-    }
+  logs.forEach(l => {
+    if (l.meal === meal) usage[l.food] = (usage[l.food] || 0) + 1;
   });
 
   const quickFoods = Object.keys(usage)
     .sort((a, b) => usage[b] - usage[a])
     .slice(0, 4);
 
-  const availableFoods = config.filter((c) => c.meal === meal);
+  const availableFoods = config.filter(c => c.meal === meal);
 
   // ✅ IMPORT TXT
   const importFromFile = (e) => {
@@ -100,7 +94,7 @@ export default function Page() {
         let currentMeal = null;
         const newConfig = [];
 
-        lines.forEach((line) => {
+        lines.forEach(line => {
           line = line.trim();
           if (!line) return;
 
@@ -134,45 +128,22 @@ export default function Page() {
     reader.readAsText(file);
   };
 
-  // ✅ EXPORT TXT
+  // ✅ EXPORT CONFIG TXT
   const exportConfigTxt = () => {
     if (config.length === 0) {
-      setMessage("❌ Nessuna configurazione da esportare");
+      setMessage("❌ Nessuna configurazione");
       return;
     }
 
-    const grouped = {
-      Colazione: [],
-      Spuntino: [],
-      Pranzo: [],
-      Cena: []
-    };
-
-    config.forEach((c) => {
-      if (!grouped[c.meal]) return;
-
-      if (
-        c.meal === "Cena" &&
-        config.find((x) => x.food === c.food && x.meal === "Pranzo")
-      )
-        return;
-
-      grouped[c.meal].push(c);
-    });
-
     let text = "";
-
-    Object.entries(grouped).forEach(([meal, foods]) => {
-      if (foods.length === 0) return;
+    meals.forEach(meal => {
+      const items = config.filter(c => c.meal === meal);
+      if (items.length === 0) return;
 
       text += meal + "\n";
-
-      foods.forEach((f) => {
-        text += f.food;
-        if (f.frequency) text += " " + f.frequency;
-        text += "\n";
+      items.forEach(f => {
+        text += f.food + (f.frequency ? " " + f.frequency : "") + "\n";
       });
-
       text += "\n";
     });
 
@@ -181,28 +152,46 @@ export default function Page() {
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "config_food_tracker.txt";
+    a.download = "config.txt";
     a.click();
 
     URL.revokeObjectURL(url);
-
-    setMessage("✅ File configurazione salvato");
+    setMessage("✅ Config salvata");
   };
 
-  // ✅ LOG
-  const addLog = (foodOverride) => {
-    const f = foodOverride || selectedFood;
+  // ✅ EXPORT EXCEL LOG
+  const exportLogsExcel = () => {
+    if (logs.length === 0) {
+      setMessage("❌ Nessun log da esportare");
+      return;
+    }
+
+    const data = logs.map(l => ({
+      Data: new Date(l.date).toLocaleDateString(),
+      Pasto: l.meal,
+      Alimento: l.food
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Log");
+
+    XLSX.writeFile(wb, "food_log.xlsx");
+
+    setMessage("✅ Excel esportato");
+  };
+
+  const addLog = (f) => {
     if (!f) return;
     setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
   };
 
-  // ✅ CONFIG
   const addConfig = () => {
     if (!newFood) return;
 
     const freqNum = frequency ? Number(frequency) : null;
 
-    const newItems =
+    const items =
       configMeal === "Pranzo" || configMeal === "Cena"
         ? [
             { food: newFood, meal: "Pranzo", frequency: freqNum },
@@ -210,20 +199,17 @@ export default function Page() {
           ]
         : [{ food: newFood, meal: configMeal, frequency: freqNum }];
 
-    setConfig([...config, ...newItems]);
+    setConfig([...config, ...items]);
     setNewFood("");
     setFrequency("");
   };
 
-  const clearConfig = () => confirm("Reset config?") && setConfig([]);
-  const clearLogs = () => confirm("Reset log?") && setLogs([]);
-
   const selectedDayLogs = logs.filter(
-    (l) => formatDate(l.date) === (selectedDate || today)
+    l => formatDate(l.date) === (selectedDate || today)
   );
 
   const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
-  selectedDayLogs.forEach((l) => dayView[l.meal].push(l.food));
+  selectedDayLogs.forEach(l => dayView[l.meal].push(l.food));
 
   const infoImages = {
     Colazione: "/colazione.png",
@@ -234,140 +220,94 @@ export default function Page() {
 
   return (
     <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
+
       <h1>🍽 Food Tracker</h1>
 
       {message && <div>{message}</div>}
 
-      <button onClick={() => setShowCalendar(!showCalendar)}>📅</button>
       <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
 
-      {/* ✅ PASTI + INFO */}
-      <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 10 }}>
-        {meals.map((m) => (
-          <button
-            key={m}
-            onClick={() => setMeal(m)}
+      {/* MEALS */}
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        {meals.map(m => (
+          <button key={m} onClick={() => setMeal(m)}
             style={{
-              flex: "1",
+              flex: 1,
               margin: 5,
               padding: 16,
               borderRadius: 18,
               background: m === meal ? "#007aff" : "#eee",
               color: m === meal ? "white" : "black"
-            }}
-          >
+            }}>
             {m}
           </button>
         ))}
-        <button onClick={() => setShowInfo(!showInfo)} style={{ marginLeft: 10 }}>
-          ℹ️
-        </button>
+        <button onClick={() => setShowInfo(!showInfo)}>ℹ️</button>
       </div>
 
-      {/* ✅ IMMAGINE INFO */}
-      {showInfo && (
-        <div style={{ marginBottom: 10 }}>
-          <img
-            src={infoImages[meal]}
-            alt="info"
-            style={{ width: "100%", borderRadius: 12 }}
-          />
-        </div>
-      )}
+      {showInfo && infoImages[meal]}
 
       {/* QUICK */}
       <div>
-        {quickFoods.map((food) => (
-          <button
-            key={food}
-            onClick={() => addLog(food)}
+        {quickFoods.map(f => (
+          <button key={f}
+            onClick={() => addLog(f)}
             style={{
-              background: getColor(food),
+              background: getColor(f),
               color: "white",
               padding: 14,
               margin: 5,
               borderRadius: 10
-            }}
-          >
-            + {food}
+            }}>
+            + {f}
           </button>
         ))}
       </div>
 
-      <select
-        value={selectedFood}
+      <select value={selectedFood}
         onChange={(e) => setSelectedFood(e.target.value)}
-        style={{ width: "100%", padding: 18 }}
-      >
+        style={{ width: "100%", padding: 18 }}>
         <option value="">Seleziona alimento</option>
-        {availableFoods.map((c) => (
-          <option key={c.food}>{c.food}</option>
-        ))}
+        {availableFoods.map(c => <option key={c.food}>{c.food}</option>)}
       </select>
 
-      <button onClick={() => addLog()} style={{ width: "100%", padding: 18 }}>
+      <button onClick={() => addLog(selectedFood)} style={{ width: "100%", padding: 18 }}>
         + Aggiungi
       </button>
 
-      <h2>📊 Frequenze</h2>
-      {Object.entries(stats).map(([food, val]) => (
-        <div key={food} style={{ color: getColor(food) }}>
-          {food} {val.total}/{val.frequency}
-        </div>
-      ))}
-
-      <h2>📅 Giorno</h2>
-      {Object.entries(dayView).map(([m, foods]) => (
-        <div key={m}>
-          {m}: {foods.join(", ") || "-"}
-        </div>
-      ))}
-
       {/* CONFIG */}
       {showConfig && (
-        <div>
-          <input
-            value={newFood}
-            onChange={(e) => setNewFood(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
+        <div style={{ marginTop: 20 }}>
 
-          <select
-            value={configMeal}
-            onChange={(e) => setConfigMeal(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          >
-            {meals.map((m) => (
-              <option key={m}>{m}</option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
-
-          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
-            ➕ Aggiungi
-          </button>
-
-          <button onClick={clearConfig}>Reset Config</button>
-          <button onClick={clearLogs}>Reset Log</button>
-
-          {/* IMPORT */}
-          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 14 }}>
+          <label style={btnStyle}>
             📄 Importa file
             <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
           </label>
 
-          {/* EXPORT */}
-          <button onClick={exportConfigTxt} style={{ marginTop: 10, width: "100%", padding: 14, background: "#34c759", color: "white" }}>
+          <button onClick={exportConfigTxt} style={btnStyle}>
             💾 Esporta configurazione (.txt)
           </button>
+
+          <button onClick={exportLogsExcel} style={btnStyle}>
+            📊 Esporta log (Excel)
+          </button>
+
         </div>
       )}
+
     </div>
   );
 }
+
+const btnStyle = {
+  display: "block",
+  width: "100%",
+  padding: 16,
+  marginTop: 10,
+  textAlign: "center",
+  fontSize: 16,
+  background: "#007aff",
+  color: "white",
+  border: "none",
+  borderRadius: 12
+};
