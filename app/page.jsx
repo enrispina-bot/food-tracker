@@ -265,11 +265,14 @@ export default function Page() {
       </div>
 
       {/* ✅ IMMAGINE INFO */}
-      {showInfo && (
-        <div style={{ marginBottom: 10 }}>
-          {infoImages[meal]}
-        </div>
-      )}
+      
+		{showInfo && (
+		  <img
+			src={infoImages[meal]}
+			style={{ width: "100%", borderRadius: 12, marginBottom: 10 }}
+		  />
+		)}
+
 
       {/* QUICK */}
       <div>
