@@ -189,6 +189,45 @@ export default function Page() {
     setMessage("✅ File configurazione salvato");
   };
 
+// ✅ EXPORT LOG EXCEL
+const exportLogsExcel = () => {
+  if (logs.length === 0) {
+    setMessage("❌ Nessun log da esportare");
+	
+const btnStyle = {
+  display: "block",
+  width: "100%",
+  padding: 14,
+  marginTop: 10,
+  textAlign: "center",
+  fontSize: 16,
+  background: "#007aff",
+  color: "white",
+  border: "none",
+  borderRadius: 12
+};
+
+    return;
+  }
+
+  const data = logs.map((l) => ({
+    Data: new Date(l.date).toLocaleDateString(),
+    Colazione: l.meal === "Colazione" ? l.food : "",
+    Spuntino: l.meal === "Spuntino" ? l.food : "",
+    Pranzo: l.meal === "Pranzo" ? l.food : "",
+    Cena: l.meal === "Cena" ? l.food : ""
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Log");
+
+  XLSX.writeFile(wb, "food_logs.xlsx");
+
+  setMessage("✅ Log esportati in Excel");
+};
+
+
   // ✅ LOG
   const addLog = (foodOverride) => {
     const f = foodOverride || selectedFood;
@@ -381,15 +420,30 @@ selectedDayLogs.forEach((l) => {
           <button onClick={clearLogs}>Reset Log</button>
 
           {/* IMPORT */}
-          <label style={{ display: "block", marginTop: 10, background: "#007aff", color: "white", padding: 14 }}>
-            📄 Importa file
-            <input type="file" accept=".txt" onChange={importFromFile} style={{ display: "none" }} />
-          </label>
+          
+<label style={btnStyle}>
+  📄 Importa file
+  <input
+    type="file"
+    accept=".txt"
+    onChange={importFromFile}
+    style={{ display: "none" }}
+  />
+</label>
+
 
           {/* EXPORT */}
-          <button onClick={exportConfigTxt} style={{ marginTop: 10, width: "100%", padding: 14, background: "#34c759", color: "white" }}>
-            💾 Esporta configurazione (.txt)
-          </button>
+          
+<button onClick={exportConfigTxt} style={btnStyle}>
+  💾 Esporta configurazione (.txt)
+</button>
+
+
+<button onClick={exportLogsExcel} style={btnStyle}>
+  📊 Esporta log (Excel)
+</button>
+
+
         </div>
       )}
     </div>
