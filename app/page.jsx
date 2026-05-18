@@ -218,12 +218,24 @@ export default function Page() {
   const clearConfig = () => confirm("Reset config?") && setConfig([]);
   const clearLogs = () => confirm("Reset log?") && setLogs([]);
 
-  const selectedDayLogs = logs.filter(
-    (l) => formatDate(l.date) === (selectedDate || today)
-  );
+  
+const selectedDayLogs = logs.filter(
+  (l) => formatDate(l.date) === (selectedDate || today)
+);
 
-  const dayView = { Colazione: [], Spuntino: [], Pranzo: [], Cena: [] };
-  selectedDayLogs.forEach((l) => dayView[l.meal].push(l.food));
+const dayView = {
+  Colazione: [],
+  Spuntino: [],
+  Pranzo: [],
+  Cena: []
+};
+
+selectedDayLogs.forEach((l) => {
+  if (dayView[l.meal]) {
+    dayView[l.meal].push(l.food);
+  }
+});
+
 
   const infoImages = {
     Colazione: "/colazione.png",
@@ -240,6 +252,17 @@ export default function Page() {
 
       <button onClick={() => setShowCalendar(!showCalendar)}>📅</button>
       <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
+	  
+	  
+{showCalendar && (
+  <input
+    type="date"
+    value={selectedDate || today}
+    onChange={(e) => setSelectedDate(e.target.value)}
+    style={{ width: "100%", padding: 12, marginTop: 10 }}
+  />
+)}
+
 
       {/* ✅ PASTI + INFO */}
       <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 10 }}>
@@ -315,12 +338,14 @@ export default function Page() {
         </div>
       ))}
 
-      <h2>📅 Giorno</h2>
-      {Object.entries(dayView).map(([m, foods]) => (
-        <div key={m}>
-          {m}: {foods.join(", ") || "-"}
-        </div>
-      ))}
+      
+<h2>📅 Giorno selezionato</h2>
+{Object.entries(dayView).map(([meal, foods]) => (
+  <div key={meal}>
+    {meal}: {foods.length > 0 ? foods.join(", ") : "-"}
+  </div>
+))}
+
 
       {/* CONFIG */}
       {showConfig && (
