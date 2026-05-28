@@ -83,7 +83,8 @@ export default function Page() {
   const availableFoods = config.filter((c) => c.meal === meal);
 
 
-// ✅ IMPORT LOG DA EXCEL
+
+// ✅ IMPORT EXCEL (COMPATIBILE CON IL TUO FILE)
 const importLogsFromExcel = (e) => {
   const file = e.target.files[0];
 
@@ -100,23 +101,47 @@ const importLogsFromExcel = (e) => {
       const workbook = XLSX.read(data, { type: "array" });
 
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet);
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      const newLogs = json.map(row => ({
-        food: row["Alimento"],
-        meal: row["Pasto"],
-        date: new Date(row["Data"]).toISOString()
-      }));
+      // ✅ rimuove intestazione
+      const flatRows = rows.flat().filter(r => r !== undefined);
+
+      const newLogs = [];
+
+      for (let i = 3; i < flatRows.length; i += 3) {
+        const dateStr = flatRows[i];
+        const food = flatRows[i + 1];
+        const meal = flatRows[i + 2];
+
+        if (!dateStr || !food || !meal) continue;
+
+        // ✅ conversione data sicura
+        const parts = dateStr.split("/");
+        const dateISO = parts.length === 3
+          ? new Date(parts[2], parts[1] - 1, parts[0]).toISOString()
+          : new Date(dateStr).toISOString();
+
+        newLogs.push({
+          food,
+          meal,
+          date: dateISO
+        });
+      }
 
       setLogs([...logs, ...newLogs]);
-      setMessage("✅ Log importati con successo");
+      setMessage(`✅ Importati ${newLogs.length} log`);
     } catch (err) {
+      console.error(err);
       setMessage("❌ Errore import Excel");
     }
   };
 
   reader.readAsArrayBuffer(file);
 };
+
+
+
+	
 	
   // ✅ IMPORT TXT
   const importFromFile = (e) => {
