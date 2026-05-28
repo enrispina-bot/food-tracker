@@ -82,6 +82,42 @@ export default function Page() {
 
   const availableFoods = config.filter((c) => c.meal === meal);
 
+
+// ✅ IMPORT LOG DA EXCEL
+const importLogsFromExcel = (e) => {
+  const file = e.target.files[0];
+
+  if (!file) {
+    setMessage("❌ Nessun file selezionato");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (evt) => {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet);
+
+      const newLogs = json.map(row => ({
+        food: row["Alimento"],
+        meal: row["Pasto"],
+        date: new Date(row["Data"]).toISOString()
+      }));
+
+      setLogs([...logs, ...newLogs]);
+      setMessage("✅ Log importati con successo");
+    } catch (err) {
+      setMessage("❌ Errore import Excel");
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+};
+	
   // ✅ IMPORT TXT
   const importFromFile = (e) => {
     const file = e.target.files[0];
@@ -422,7 +458,17 @@ const btnStyle = {
           <button onClick={clearConfig}>Reset Config</button>
           <button onClick={clearLogs}>Reset Log</button>
 
-          
+    
+<label style={btnStyle}>
+  📊 Importa log da Excel
+  <input
+    type="file"
+    accept=".xlsx"
+    onChange={importLogsFromExcel}
+    style={{ display: "none" }}
+  />
+</label>
+      
 		  {/* IMPORT */}
 <label style={btnStyle}>
   📄 Importa file
