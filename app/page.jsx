@@ -303,7 +303,18 @@ const exportLogsExcel = () => {
   };
 
   const clearConfig = () => confirm("Reset config?") && setConfig([]);
-  const clearLogs = () => confirm("Reset log?") && setLogs([]);
+const clearLogs = () => {
+  const targetDate = selectedDate || today;
+
+  if (!confirm("Cancellare i log del giorno selezionato?")) return;
+
+  const filteredLogs = logs.filter(
+    (l) => formatDate(l.date) !== targetDate
+  );
+
+  setLogs(filteredLogs);
+  setMessage("✅ Log del giorno eliminati");
+};
 
   
 const selectedDayLogs = logs.filter(
