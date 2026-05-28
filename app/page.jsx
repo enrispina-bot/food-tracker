@@ -384,25 +384,7 @@ const cardStyle = {
 };
 
 
-	<div style={cardStyle}>
-  <h3>⚡ Veloci</h3>
-  {quickFoods.map(food => (
-    <button
-      key={food}
-      onClick={() => addLog(food)}
-      style={{
-        background: getColor(food),
-        color: "white",
-        padding: 14,
-        margin: 5,
-        borderRadius: 12,
-        border: "none"
-      }}
-    >
-      + {food}
-    </button>
-  ))}
-</div>
+
 
 
 		<div style={cardStyle}>
@@ -441,53 +423,11 @@ const cardStyle = {
 
 
 
-<div style={cardStyle}>
-  <h3>📅 Giorno</h3>
-  {Object.entries(dayView).map(([m, foods]) => (
-    <div key={m} style={{ marginBottom: 5 }}>
-      <strong>{m}:</strong> {foods.join(", ") || "-"}
-    </div>
-  ))}
-</div>
+
 
 		
-		<div style={cardStyle}>
-  <h3>📊 Frequenze</h3>
-  {Object.entries(stats).map(([food, val]) => (
-    <div key={food} style={{
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: 5
-    }}>
-      <span>{food}</span>
-      <span style={{ color: getColor(food) }}>
-        {val.total}/{val.frequency}
-      </span>
-    </div>
-  ))}
-</div>
+	
 
-<div style={cardStyle}>
-  <div style={{ display: "flex", flexWrap: "wrap" }}>
-    {meals.map(m => (
-      <button
-        key={m}
-        onClick={() => setMeal(m)}
-        style={{
-          flex: 1,
-          margin: 5,
-          padding: 14,
-          borderRadius: 14,
-          background: m === meal ? "#007aff" : "#eee",
-          color: m === meal ? "white" : "black",
-          border: "none"
-        }}
-      >
-        {m}
-      </button>
-    ))}
-  </div>
-</div>
 
 	
   return (
@@ -551,54 +491,106 @@ const cardStyle = {
 		)}
 
 
-      {/* QUICK */}
-      <div>
-        {quickFoods.map((food) => (
-          <button
-            key={food}
-            onClick={() => addLog(food)}
-            style={{
-              background: getColor(food),
-              color: "white",
-              padding: 14,
-              margin: 5,
-              borderRadius: 10
-            }}
-          >
-            + {food}
-          </button>
-        ))}
-      </div>
-
-      <select
-        value={selectedFood}
-        onChange={(e) => setSelectedFood(e.target.value)}
-        style={{ width: "100%", padding: 18 }}
+{/* ✅ CARD PASTI */}
+<div style={cardStyle}>
+  <div style={{ display: "flex", flexWrap: "wrap" }}>
+    {meals.map((m) => (
+      <button
+        key={m}
+        onClick={() => setMeal(m)}
+        style={{
+          flex: 1,
+          margin: 5,
+          padding: 14,
+          borderRadius: 14,
+          background: m === meal ? "#007aff" : "#eee",
+          color: m === meal ? "white" : "black",
+          border: "none"
+        }}
       >
-        <option value="">Seleziona alimento</option>
-        {availableFoods.map((c) => (
-          <option key={c.food}>{c.food}</option>
-        ))}
-      </select>
-
-      <button onClick={() => addLog()} style={{ width: "100%", padding: 18 }}>
-        + Aggiungi
+        {m}
       </button>
-
-      <h2>📊 Frequenze</h2>
-      {Object.entries(stats).map(([food, val]) => (
-        <div key={food} style={{ color: getColor(food) }}>
-          {food} {val.total}/{val.frequency}
-        </div>
-      ))}
-
-      
-<h2>📅 Giorno selezionato</h2>
-{Object.entries(dayView).map(([meal, foods]) => (
-  <div key={meal}>
-    {meal}: {foods.length > 0 ? foods.join(", ") : "-"}
+    ))}
   </div>
-))}
+</div>
+
+{/* ✅ QUICK */}
+<div style={cardStyle}>
+  <h3>⚡ Veloci</h3>
+  {quickFoods.map(food => (
+    <button
+      key={food}
+      onClick={() => addLog(food)}
+      style={{
+        background: getColor(food),
+        color: "white",
+        padding: 12,
+        margin: 5,
+        borderRadius: 12,
+        border: "none"
+      }}
+    >
+      + {food}
+    </button>
+  ))}
+</div>
+
+{/* ✅ SELECT */}
+<div style={cardStyle}>
+  <select
+    value={selectedFood}
+    onChange={(e) => setSelectedFood(e.target.value)}
+    style={{
+      width: "100%",
+      padding: 16,
+      borderRadius: 12,
+      border: "1px solid #ccc",
+      marginBottom: 10
+    }}
+  >
+    <option value="">Seleziona alimento</option>
+    {availableFoods.map(c => (
+      <option key={c.food}>{c.food}</option>
+    ))}
+  </select>
+
+  <button
+    onClick={() => addLog()}
+    style={{
+      width: "100%",
+      padding: 16,
+      borderRadius: 12,
+      background: "#007aff",
+      color: "white",
+      border: "none"
+    }}
+  >
+    + Aggiungi
+  </button>
+</div>
+
+{/* ✅ GIORNO */}
+<div style={cardStyle}>
+  <h3>📅 Giorno</h3>
+  {Object.entries(dayView).map(([m, foods]) => (
+    <div key={m}>
+      <strong>{m}:</strong> {foods.join(", ") || "-"}
+    </div>
+  ))}
+</div>
+
+{/* ✅ STATS */}
+<div style={cardStyle}>
+  <h3>📊 Frequenze</h3>
+  {Object.entries(stats).map(([food, val]) => (
+    <div key={food} style={{ display: "flex", justifyContent: "space-between" }}>
+      <span>{food}</span>
+      <span style={{ color: getColor(food) }}>
+        {val.total}/{val.frequency}
+      </span>
+    </div>
+  ))}
+</div>
 
 
       {/* CONFIG */}
