@@ -277,11 +277,30 @@ const exportLogsExcel = () => {
   };
 
   // ✅ LOG
-  const addLog = (foodOverride) => {
-    const f = foodOverride || selectedFood;
-    if (!f) return;
-    setLogs([...logs, { food: f, meal, date: new Date().toISOString() }]);
-  };
+ const addLog = (foodOverride) => {
+  const f = foodOverride || selectedFood;
+  if (!f) return;
+
+  // ✅ usa data selezionata o oggi
+  const baseDate = selectedDate || today;
+
+  // ✅ crea data completa (con ora attuale)
+  const now = new Date();
+  const fullDate = new Date(baseDate);
+
+  fullDate.setHours(now.getHours());
+  fullDate.setMinutes(now.getMinutes());
+  fullDate.setSeconds(now.getSeconds());
+
+  setLogs([
+    ...logs,
+    {
+      food: f,
+      meal,
+      date: fullDate.toISOString()
+    }
+  ]);
+};
 
   // ✅ CONFIG
   const addConfig = () => {
