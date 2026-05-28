@@ -375,10 +375,131 @@ const btnStyle = {
   borderRadius: 12
 };
 
+const cardStyle = {
+  background: "white",
+  borderRadius: 16,
+  padding: 16,
+  marginBottom: 15,
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+};
 
 
+	<div style={cardStyle}>
+  <h3>⚡ Veloci</h3>
+  {quickFoods.map(food => (
+    <button
+      key={food}
+      onClick={() => addLog(food)}
+      style={{
+        background: getColor(food),
+        color: "white",
+        padding: 14,
+        margin: 5,
+        borderRadius: 12,
+        border: "none"
+      }}
+    >
+      + {food}
+    </button>
+  ))}
+</div>
+
+
+		<div style={cardStyle}>
+  <select
+    value={selectedFood}
+    onChange={(e) => setSelectedFood(e.target.value)}
+    style={{
+      width: "100%",
+      padding: 16,
+      borderRadius: 12,
+      border: "1px solid #ccc",
+      marginBottom: 10
+    }}
+  >
+    <option value="">Seleziona alimento</option>
+    {availableFoods.map(c => (
+      <option key={c.food}>{c.food}</option>
+    ))}
+  </select>
+
+  <button
+    onClick={() => addLog()}
+    style={{
+      width: "100%",
+      padding: 16,
+      borderRadius: 12,
+      background: "#007aff",
+      color: "white",
+      border: "none",
+      fontWeight: "bold"
+    }}
+  >
+    + Aggiungi
+  </button>
+</div>
+
+
+
+<div style={cardStyle}>
+  <h3>📅 Giorno</h3>
+  {Object.entries(dayView).map(([m, foods]) => (
+    <div key={m} style={{ marginBottom: 5 }}>
+      <strong>{m}:</strong> {foods.join(", ") || "-"}
+    </div>
+  ))}
+</div>
+
+		
+		<div style={cardStyle}>
+  <h3>📊 Frequenze</h3>
+  {Object.entries(stats).map(([food, val]) => (
+    <div key={food} style={{
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: 5
+    }}>
+      <span>{food}</span>
+      <span style={{ color: getColor(food) }}>
+        {val.total}/{val.frequency}
+      </span>
+    </div>
+  ))}
+</div>
+
+<div style={cardStyle}>
+  <div style={{ display: "flex", flexWrap: "wrap" }}>
+    {meals.map(m => (
+      <button
+        key={m}
+        onClick={() => setMeal(m)}
+        style={{
+          flex: 1,
+          margin: 5,
+          padding: 14,
+          borderRadius: 14,
+          background: m === meal ? "#007aff" : "#eee",
+          color: m === meal ? "white" : "black",
+          border: "none"
+        }}
+      >
+        {m}
+      </button>
+    ))}
+  </div>
+</div>
+
+	
   return (
-    <div style={{ padding: 20, maxWidth: 520, margin: "auto", fontFamily: "-apple-system" }}>
+ <div style={{
+  padding: 15,
+  maxWidth: 520,
+  margin: "auto",
+  fontFamily: "-apple-system",
+  background: "#f2f2f7",
+  minHeight: "100vh"
+}}>
+
       <h1>🍽 Food Tracker</h1>
 
       {message && <div>{message}</div>}
