@@ -387,39 +387,6 @@ const cardStyle = {
 
 
 
-		<div style={cardStyle}>
-  <select
-    value={selectedFood}
-    onChange={(e) => setSelectedFood(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 16,
-      borderRadius: 12,
-      border: "1px solid #ccc",
-      marginBottom: 10
-    }}
-  >
-    <option value="">Seleziona alimento</option>
-    {availableFoods.map(c => (
-      <option key={c.food}>{c.food}</option>
-    ))}
-  </select>
-
-  <button
-    onClick={() => addLog()}
-    style={{
-      width: "100%",
-      padding: 16,
-      borderRadius: 12,
-      background: "#007aff",
-      color: "white",
-      border: "none",
-      fontWeight: "bold"
-    }}
-  >
-    + Aggiungi
-  </button>
-</div>
 
 
 return (
@@ -644,7 +611,7 @@ return (
 
   </div>
 );
-
+}
 
 		
 	
