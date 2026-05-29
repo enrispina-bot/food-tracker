@@ -18,6 +18,7 @@ export default function Page() {
 
   const [selectedFood, setSelectedFood] = useState("");
   const [meal, setMeal] = useState("Colazione");
+	const [search, setSearch] = useState("");
 
   const meals = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
@@ -80,7 +81,15 @@ export default function Page() {
     .sort((a, b) => usage[b] - usage[a])
     .slice(0, 4);
 
-  const availableFoods = config.filter((c) => c.meal === meal);
+
+
+const availableFoods = config
+  .filter((c) => c.meal === meal)
+  .filter((c) =>
+    c.food.toLowerCase().includes(search.toLowerCase())
+  )
+  .sort((a, b) => a.food.localeCompare(b.food));
+	
 
 
 
@@ -480,6 +489,13 @@ return (
 
     {/* ADD FOOD */}
     <div className="bg-white rounded-2xl p-3 shadow mb-3">
+		<input
+  type="text"
+  placeholder="🔍 Cerca alimento..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  className="w-full p-3 border rounded-xl mb-2"
+/>
       <select
         value={selectedFood}
         onChange={(e) => setSelectedFood(e.target.value)}
