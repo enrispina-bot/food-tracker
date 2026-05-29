@@ -1,4 +1,6 @@
 "use client";
+import { auth, provider } from "./firebase";
+import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -8,6 +10,7 @@ export default function Page() {
   const [config, setConfig] = useState([]);
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
+	const [user, setUser] = useState(null);
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -27,7 +30,7 @@ export default function Page() {
 useEffect(() => {
   const loadData = async () => {
     try {
-      const docRef = doc(db, "userData", "main");
+      const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -44,9 +47,47 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (u) => {
+    setUser(u);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+useEffect(() => {
+  if (!user) return;
+
+  const saveData = async () => {
+    await setDoc(doc(db, "users", user.uid), {
+      logs,
+      config
+    });
+  };
+
+  saveData();
+}, [logs, config, user]);
+
+
+useEffect(() => {
+  if (!user) return;
+
+  const loadData = async () => {
+    const docSnap = await getDoc(doc(db, "users", user.uid));
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setLogs(data.logs || []);
+      setConfig(data.config || []);
+    }
+  };
+
+  loadData();
+}, [user]);
+	
+useEffect(() => {
   const saveData = async () => {
     try {
-      await setDoc(doc(db, "userData", "main"), {
+      await setDoc(doc(db, "users", user.uid), {
         logs,
         config
       });
@@ -58,6 +99,13 @@ useEffect(() => {
   saveData();
 }, [logs, config]);
 
+	const login = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   const formatDate = (date) => new Date(date).toISOString().split("T")[0];
   const today = formatDate(new Date());
@@ -426,6 +474,23 @@ const cardStyle = {
 
 
 return (
+
+{!user && (
+  <button
+    onClick={login}
+    className="w-full bg-black text-white p-3 rounded-xl mb-3"
+  >
+    🔐 Accedi con Google
+  </button>
+)}
+
+
+	if (!user) return (
+  <div className="p-4 text-center">
+    <h2>Devi accedere</h2>
+  </div>
+);
+	
   <div className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto text-sm">
 
     <h1 className="text-2xl font-bold mb-3 text-center">🍽 Food Tracker</h1>
