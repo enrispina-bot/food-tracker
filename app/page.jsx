@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 export default function Page() {
   const [config, setConfig] = useState([]);
@@ -22,15 +24,40 @@ export default function Page() {
 
   const meals = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
-  useEffect(() => {
-    const c = localStorage.getItem("config");
-    const l = localStorage.getItem("logs");
-    if (c) setConfig(JSON.parse(c));
-    if (l) setLogs(JSON.parse(l));
-  }, []);
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const docRef = doc(db, "userData", "main");
+      const docSnap = await getDoc(docRef);
 
-  useEffect(() => localStorage.setItem("config", JSON.stringify(config)), [config]);
-  useEffect(() => localStorage.setItem("logs", JSON.stringify(logs)), [logs]);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setLogs(data.logs || []);
+        setConfig(data.config || []);
+      }
+    } catch (e) {
+      console.error("Errore Firebase:", e);
+    }
+  };
+
+  loadData();
+}, []);
+
+useEffect(() => {
+  const saveData = async () => {
+    try {
+      await setDoc(doc(db, "userData", "main"), {
+        logs,
+        config
+      });
+    } catch (e) {
+      console.error("Errore salvataggio:", e);
+    }
+  };
+
+  saveData();
+}, [logs, config]);
+
 
   const formatDate = (date) => new Date(date).toISOString().split("T")[0];
   const today = formatDate(new Date());
