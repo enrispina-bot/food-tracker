@@ -422,7 +422,228 @@ const cardStyle = {
 </div>
 
 
+return (
+  <div className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto text-sm">
 
+    <h1 className="text-2xl font-bold mb-3 text-center">🍽 Food Tracker</h1>
+
+    {message && (
+      <div className="bg-green-100 text-green-700 p-2 rounded mb-3 text-center">
+        {message}
+      </div>
+    )}
+
+    {/* TOP BUTTONS */}
+    <div className="flex justify-between mb-3">
+      <button
+        onClick={() => setShowCalendar(!showCalendar)}
+        className="bg-white shadow rounded-xl px-4 py-2"
+      >
+        📅
+      </button>
+
+      <button
+        onClick={() => setShowConfig(!showConfig)}
+        className="bg-white shadow rounded-xl px-4 py-2"
+      >
+        ⚙️
+      </button>
+    </div>
+
+    {/* CALENDAR */}
+    {showCalendar && (
+      <input
+        type="date"
+        value={selectedDate || today}
+        onChange={(e) => setSelectedDate(e.target.value)}
+        className="w-full p-3 rounded-xl border mb-3"
+      />
+    )}
+
+    {/* MEALS */}
+    <div className="bg-white rounded-2xl p-3 shadow mb-3">
+      <div className="grid grid-cols-2 gap-2">
+        {meals.map((m) => (
+          <button
+            key={m}
+            onClick={() => setMeal(m)}
+            className={`py-3 rounded-xl ${
+              m === meal
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => setShowInfo(!showInfo)}
+        className="mt-2 w-full text-sm"
+      >
+        ℹ️ Info
+      </button>
+    </div>
+
+    {/* INFO IMG */}
+    {showInfo && (
+      <img
+        src={infoImages[meal]}
+        className="w-full rounded-xl mb-3"
+      />
+    )}
+
+    {/* QUICK */}
+    <div className="bg-white rounded-2xl p-3 shadow mb-3">
+      <h3 className="font-semibold mb-2">⚡ Veloci</h3>
+      <div className="flex flex-wrap">
+        {quickFoods.map((food) => (
+          <button
+            key={food}
+            onClick={() => addLog(food)}
+            className="text-white px-3 py-2 m-1 rounded-xl"
+            style={{ background: getColor(food) }}
+          >
+            + {food}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* ADD FOOD */}
+    <div className="bg-white rounded-2xl p-3 shadow mb-3">
+      <select
+        value={selectedFood}
+        onChange={(e) => setSelectedFood(e.target.value)}
+        className="w-full p-3 border rounded-xl mb-2"
+      >
+        <option value="">Seleziona alimento</option>
+        {availableFoods.map((c) => (
+          <option key={c.food}>{c.food}</option>
+        ))}
+      </select>
+
+      <button
+        onClick={() => addLog()}
+        className="w-full bg-blue-500 text-white p-3 rounded-xl"
+      >
+        + Aggiungi
+      </button>
+    </div>
+
+    {/* DAY VIEW */}
+    <div className="bg-white rounded-2xl p-3 shadow mb-3">
+      <h3 className="font-semibold mb-2">📅 Giorno</h3>
+
+      {Object.entries(dayView).map(([meal, foods]) => (
+        <div key={meal} className="mb-1">
+          <span className="font-medium">{meal}: </span>
+          {foods.join(", ") || "-"}
+        </div>
+      ))}
+    </div>
+
+    {/* STATS */}
+    <div className="bg-white rounded-2xl p-3 shadow mb-3">
+      <h3 className="font-semibold mb-2">📊 Frequenze</h3>
+
+      {Object.entries(stats).map(([food, val]) => (
+        <div key={food} className="flex justify-between">
+          <span>{food}</span>
+          <span style={{ color: getColor(food) }}>
+            {val.total}/{val.frequency}
+          </span>
+        </div>
+      ))}
+    </div>
+
+    {/* CONFIG */}
+    {showConfig && (
+      <div className="bg-white rounded-2xl p-3 shadow mt-4">
+
+        <input
+          value={newFood}
+          onChange={(e) => setNewFood(e.target.value)}
+          className="w-full p-2 border rounded mb-2"
+          placeholder="Nuovo alimento"
+        />
+
+        <select
+          value={configMeal}
+          onChange={(e) => setConfigMeal(e.target.value)}
+          className="w-full p-2 border rounded mb-2"
+        >
+          {meals.map((m) => (
+            <option key={m}>{m}</option>
+          ))}
+        </select>
+
+        <input
+          type="number"
+          placeholder="Frequenza"
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value)}
+          className="w-full p-2 border rounded mb-2"
+        />
+
+        <button
+          onClick={addConfig}
+          className="w-full bg-blue-500 text-white p-2 rounded mb-2"
+        >
+          ➕ Aggiungi
+        </button>
+
+        <button onClick={clearConfig} className="w-full mb-1">
+          Reset Config
+        </button>
+
+        <button onClick={clearLogs} className="w-full mb-3">
+          Reset Log Giorno
+        </button>
+
+        {/* IMPORT EXCEL */}
+        <label className="block bg-blue-500 text-white text-center p-2 rounded mb-2">
+          📊 Importa Excel
+          <input
+            type="file"
+            accept=".xlsx"
+            onChange={importLogsFromExcel}
+            hidden
+          />
+        </label>
+
+        {/* IMPORT TXT */}
+        <label className="block bg-blue-500 text-white text-center p-2 rounded mb-2">
+          📄 Importa TXT
+          <input
+            type="file"
+            accept=".txt"
+            onChange={importFromFile}
+            hidden
+          />
+        </label>
+
+        {/* EXPORT */}
+        <button
+          onClick={exportConfigTxt}
+          className="w-full bg-green-500 text-white p-2 rounded mb-2"
+        >
+          💾 Config
+        </button>
+
+        <button
+          onClick={exportLogsExcel}
+          className="w-full bg-green-600 text-white p-2 rounded"
+        >
+          📊 Log Excel
+        </button>
+
+      </div>
+    )}
+
+  </div>
+);
 
 
 		
@@ -430,239 +651,4 @@ const cardStyle = {
 
 
 	
-  return (
- <div style={{
-  padding: 15,
-  maxWidth: 520,
-  margin: "auto",
-  fontFamily: "-apple-system",
-  background: "#f2f2f7",
-  minHeight: "100vh"
-}}>
-
-      <h1>🍽 Food Tracker</h1>
-
-      {message && <div>{message}</div>}
-
-      <button onClick={() => setShowCalendar(!showCalendar)}>📅</button>
-      <button onClick={() => setShowConfig(!showConfig)}>⚙️</button>
-	  
-	  
-{showCalendar && (
-  <input
-    type="date"
-    value={selectedDate || today}
-    onChange={(e) => setSelectedDate(e.target.value)}
-    style={{ width: "100%", padding: 12, marginTop: 10 }}
-  />
-)}
-
-
-      {/* ✅ PASTI + INFO */}
-      <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 10 }}>
-        {meals.map((m) => (
-          <button
-            key={m}
-            onClick={() => setMeal(m)}
-            style={{
-              flex: "1",
-              margin: 5,
-              padding: 16,
-              borderRadius: 18,
-              background: m === meal ? "#007aff" : "#eee",
-              color: m === meal ? "white" : "black"
-            }}
-          >
-            {m}
-          </button>
-        ))}
-        <button onClick={() => setShowInfo(!showInfo)} style={{ marginLeft: 10 }}>
-          ℹ️
-        </button>
-      </div>
-
-      {/* ✅ IMMAGINE INFO */}
-      
-		{showInfo && (
-		  <img
-			src={infoImages[meal]}
-			style={{ width: "100%", borderRadius: 12, marginBottom: 10 }}
-		  />
-		)}
-
-
-{/* ✅ CARD PASTI */}
-<div style={cardStyle}>
-  <div style={{ display: "flex", flexWrap: "wrap" }}>
-    {meals.map((m) => (
-      <button
-        key={m}
-        onClick={() => setMeal(m)}
-        style={{
-          flex: 1,
-          margin: 5,
-          padding: 14,
-          borderRadius: 14,
-          background: m === meal ? "#007aff" : "#eee",
-          color: m === meal ? "white" : "black",
-          border: "none"
-        }}
-      >
-        {m}
-      </button>
-    ))}
-  </div>
-</div>
-
-{/* ✅ QUICK */}
-<div style={cardStyle}>
-  <h3>⚡ Veloci</h3>
-  {quickFoods.map(food => (
-    <button
-      key={food}
-      onClick={() => addLog(food)}
-      style={{
-        background: getColor(food),
-        color: "white",
-        padding: 12,
-        margin: 5,
-        borderRadius: 12,
-        border: "none"
-      }}
-    >
-      + {food}
-    </button>
-  ))}
-</div>
-
-{/* ✅ SELECT */}
-<div style={cardStyle}>
-  <select
-    value={selectedFood}
-    onChange={(e) => setSelectedFood(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 16,
-      borderRadius: 12,
-      border: "1px solid #ccc",
-      marginBottom: 10
-    }}
-  >
-    <option value="">Seleziona alimento</option>
-    {availableFoods.map(c => (
-      <option key={c.food}>{c.food}</option>
-    ))}
-  </select>
-
-  <button
-    onClick={() => addLog()}
-    style={{
-      width: "100%",
-      padding: 16,
-      borderRadius: 12,
-      background: "#007aff",
-      color: "white",
-      border: "none"
-    }}
-  >
-    + Aggiungi
-  </button>
-</div>
-
-{/* ✅ GIORNO */}
-<div style={cardStyle}>
-  <h3>📅 Giorno</h3>
-  {Object.entries(dayView).map(([m, foods]) => (
-    <div key={m}>
-      <strong>{m}:</strong> {foods.join(", ") || "-"}
-    </div>
-  ))}
-</div>
-
-{/* ✅ STATS */}
-<div style={cardStyle}>
-  <h3>📊 Frequenze</h3>
-  {Object.entries(stats).map(([food, val]) => (
-    <div key={food} style={{ display: "flex", justifyContent: "space-between" }}>
-      <span>{food}</span>
-      <span style={{ color: getColor(food) }}>
-        {val.total}/{val.frequency}
-      </span>
-    </div>
-  ))}
-</div>
-
-
-      {/* CONFIG */}
-      {showConfig && (
-        <div>
-          <input
-            value={newFood}
-            onChange={(e) => setNewFood(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
-
-          <select
-            value={configMeal}
-            onChange={(e) => setConfigMeal(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          >
-            {meals.map((m) => (
-              <option key={m}>{m}</option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            style={{ width: "100%", padding: 14 }}
-          />
-
-          <button onClick={addConfig} style={{ width: "100%", padding: 16 }}>
-            ➕ Aggiungi
-          </button>
-
-          <button onClick={clearConfig}>Reset Config</button>
-          <button onClick={clearLogs}>Reset Log</button>
-
-    
-<label style={btnStyle}>
-  📊 Importa log da Excel
-  <input
-    type="file"
-    accept=".xlsx"
-    onChange={importLogsFromExcel}
-    style={{ display: "none" }}
-  />
-</label>
-      
-		  {/* IMPORT */}
-<label style={btnStyle}>
-  📄 Importa file
-  <input
-    type="file"
-    accept=".txt"
-    onChange={importFromFile}
-    style={{ display: "none" }}
-  />
-</label>
-
-{/* EXPORT CONFIG */}
-<button onClick={exportConfigTxt} style={btnStyle}>
-  💾 Esporta configurazione (.txt)
-</button>
-
-{/* ✅ NUOVO EXPORT LOG */}
-<button onClick={exportLogsExcel} style={btnStyle}>
-  📊 Esporta log (Excel)
-</button>
-		  
-		  
-		  
-		  
-        </div>
-      )}
-    </div>
-  );
-}
+ 
