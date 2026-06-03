@@ -469,20 +469,32 @@ const cardStyle = {
 
 
 
-
-
-
-
 return (
+  <div>
 
-{!user && (
-  <button
-    onClick={login}
-    className="w-full bg-black text-white p-3 rounded-xl mb-3"
-  >
-    🔐 Accedi con Google
-  </button>
-)}
+    {!user && (
+      <button
+        onClick={login}
+        className="w-full bg-black text-white p-3 rounded-xl mb-3"
+      >
+        🔐 Accedi con Google
+      </button>
+    )}
+
+    {user && (
+      <div className="text-sm mb-3">
+        ✅ Loggato come: {user.email}
+      </div>
+    )}
+
+    {/* resto della tua app */}
+    
+  </div>
+);
+
+
+
+
 
 
 	if (!user) return (
