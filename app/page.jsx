@@ -16,6 +16,7 @@ export default function Page() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
+	const [loaded, setLoaded] = useState(false);
 
   const [newFood, setNewFood] = useState("");
   const [frequency, setFrequency] = useState("");
@@ -37,18 +38,33 @@ useEffect(() => {
   return () => unsubscribe();
 }, []);
 
+
+
 useEffect(() => {
-  if (!user) return;
+  // ✅ NON salvare prima del load
+  if (!user || !loaded) return;
 
   const saveData = async () => {
-    await setDoc(doc(db, "users", user.uid), {
-      logs,
-      config
-    });
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        logs,
+        config
+      });
+      console.log("✅ Salvato");
+    } catch (e) {
+      console.error("Errore save:", e);
+    }
   };
 
   saveData();
-}, [logs, config, user]);
+}, [logs, config, user, loaded]);
+
+
+
+	
+
+
+
 
 useEffect(() => {
   if (!user) return;
@@ -62,6 +78,10 @@ useEffect(() => {
         setLogs(data.logs || []);
         setConfig(data.config || []);
       }
+
+      // ✅ IMPORTANTISSIMO
+      setLoaded(true);
+
     } catch (e) {
       console.error("Errore load:", e);
     }
@@ -69,6 +89,7 @@ useEffect(() => {
 
   loadData();
 }, [user]);
+	
 
 
 
