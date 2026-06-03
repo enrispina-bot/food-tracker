@@ -27,24 +27,7 @@ export default function Page() {
 
   const meals = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setLogs(data.logs || []);
-        setConfig(data.config || []);
-      }
-    } catch (e) {
-      console.error("Errore Firebase:", e);
-    }
-  };
-
-  loadData();
-}, []);
 
 useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -67,7 +50,6 @@ useEffect(() => {
   saveData();
 }, [logs, config, user]);
 
-
 useEffect(() => {
   if (!user) return;
 
@@ -84,20 +66,10 @@ useEffect(() => {
   loadData();
 }, [user]);
 	
-useEffect(() => {
-  const saveData = async () => {
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        logs,
-        config
-      });
-    } catch (e) {
-      console.error("Errore salvataggio:", e);
-    }
-  };
 
-  saveData();
-}, [logs, config]);
+
+
+	
 
 	const login = async () => {
   try {
@@ -469,39 +441,24 @@ const cardStyle = {
 
 
 
-return (
-  <div>
-
-    {!user && (
+// ✅ BLOCCO LOGIN
+if (!user) {
+  return (
+    <div className="p-4 text-center">
       <button
         onClick={login}
-        className="w-full bg-black text-white p-3 rounded-xl mb-3"
+        className="bg-black text-white p-3 rounded-xl"
       >
         🔐 Accedi con Google
       </button>
-    )}
-
-    {user && (
-      <div className="text-sm mb-3">
-        ✅ Loggato come: {user.email}
-      </div>
-    )}
-
-    {/* resto della tua app */}
-    
-  </div>
-);
+    </div>
+  );
+}
 
 
 
 
-
-
-	if (!user) return (
-  <div className="p-4 text-center">
-    <h2>Devi accedere</h2>
-  </div>
-);
+return (
 	
   <div className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto text-sm">
 
