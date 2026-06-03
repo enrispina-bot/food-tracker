@@ -54,18 +54,21 @@ useEffect(() => {
   if (!user) return;
 
   const loadData = async () => {
-    const docSnap = await getDoc(doc(db, "users", user.uid));
+    try {
+      const docSnap = await getDoc(doc(db, "users", user.uid));
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      setLogs(data.logs || []);
-      setConfig(data.config || []);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setLogs(data.logs || []);
+        setConfig(data.config || []);
+      }
+    } catch (e) {
+      console.error("Errore load:", e);
     }
   };
 
   loadData();
 }, [user]);
-	
 
 
 
