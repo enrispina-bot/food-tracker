@@ -162,6 +162,7 @@ logs.forEach((l) => {
 
   if (!item) return;
 
+  // ✅ usa la categoria se presente
   const key = item.category || l.food;
 
   if (stats[key]) {
@@ -686,9 +687,7 @@ return (
 >
   <option value="">Seleziona alimento</option>
   {availableFoods.map((c) => (
-    <option key={c.food}>
-      {c.food} {c.category ? `→ ${c.category}` : ""}
-    </option>
+<option key={c.food}>{c.food}</option>
   ))}
 </select>
 
