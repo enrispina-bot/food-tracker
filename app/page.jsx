@@ -181,9 +181,7 @@ logs.forEach((l) => {
 
   const key = item.category || l.food;
 
-console.log("LOG:", l.food, l.meal);
-console.log("ITEM:", item);
-console.log("CATEGORY:", item?.category);
+
 	
   if (stats[key]) {
     stats[key].total++;
@@ -347,14 +345,32 @@ const food = parts.join(" ");
 
           if (!currentMeal) throw Error();
 
-          if (currentMeal === "Pranzo" || currentMeal === "Cena") {
-            newConfig.push(
-              { food, meal: "Pranzo", frequency: freq },
-              { food, meal: "Cena", frequency: freq }
-            );
-          } else {
-            newConfig.push({ food, meal: currentMeal, frequency: freq });
-          }
+
+if (currentMeal === "Pranzo" || currentMeal === "Cena") {
+  newConfig.push(
+    {
+      food,
+      meal: "Pranzo",
+      frequency: freq,
+      category: category || null
+    },
+    {
+      food,
+      meal: "Cena",
+      frequency: freq,
+      category: category || null
+    }
+  );
+} else {
+  newConfig.push({
+    food,
+    meal: currentMeal,
+    frequency: freq,
+    category: category || null
+  });
+}
+
+			
         });
 
         setConfig(newConfig);
