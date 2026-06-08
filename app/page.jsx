@@ -173,11 +173,12 @@ const currentWeek = getWeek(now);
 logs.forEach((l) => {
   if (getWeek(l.date) !== currentWeek) return;
 
-  const item = config.find(c => c.food === l.food);
+  const item = config.find(
+    c => c.food === l.food && c.meal === l.meal
+  );
 
   if (!item) return;
 
-  // ✅ usa la categoria se presente
   const key = item.category || l.food;
 
   if (stats[key]) {
@@ -422,9 +423,19 @@ const exportLogsExcel = () => {
       text += meal + "\n";
 
       foods.forEach((f) => {
-        text += f.food;
-        if (f.frequency) text += " " + f.frequency;
-        text += "\n";
+     text += f.food;
+
+// ✅ aggiungi categoria se presente
+if (f.category) {
+  text += ` "${f.category}"`;
+}
+
+// ✅ aggiungi frequenza se presente
+if (f.frequency) {
+  text += " " + f.frequency;
+}
+
+text += "\n";
       });
 
       text += "\n";
