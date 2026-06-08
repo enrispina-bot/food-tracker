@@ -25,6 +25,21 @@ const [category, setCategory] = useState("");
   const [frequency, setFrequency] = useState("");
   const [configMeal, setConfigMeal] = useState("Colazione");
 
+
+
+const resetWeeklyStats = () => {
+  if (!confirm("Azzerare i contatori settimanali?")) return;
+
+  const newLogs = logs.filter(
+    (l) => getWeek(l.date) !== currentWeek
+  );
+
+  setLogs(newLogs);
+  setMessage("✅ Frequenze settimanali azzerate");
+};
+
+
+
   const [selectedFood, setSelectedFood] = useState("");
   const [meal, setMeal] = useState("Colazione");
 	const [search, setSearch] = useState("");
@@ -782,12 +797,21 @@ return (
         </button>
 
         <button onClick={clearConfig} className="w-full mb-1">
-          Reset Config
+          Elimina Config Frequenze
         </button>
+		  
+
 
         <button onClick={clearLogs} className="w-full mb-3">
           Reset Log Giorno
         </button>
+
+		  <button
+  onClick={resetWeeklyStats}
+  className="w-full mb-3 bg-orange-500 text-white p-2 rounded"
+>
+  🔄 Reset Config Frequenze
+</button>
 
         {/* IMPORT EXCEL */}
         <label className="block bg-blue-500 text-white text-center p-2 rounded mb-2">
