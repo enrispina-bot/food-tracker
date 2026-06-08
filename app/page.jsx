@@ -696,16 +696,7 @@ return (
 		
 
 		
-<select
-  value={category}
-  onChange={(e) => setCategory(e.target.value)}
-  className="w-full p-2 border rounded mb-2"
->
-  <option value="">Nessuna categoria</option>
-  {categories.map((cat) => (
-    <option key={cat}>{cat}</option>
-  ))}
-</select>
+
 
 
       <button
@@ -770,6 +761,19 @@ return (
           onChange={(e) => setFrequency(e.target.value)}
           className="w-full p-2 border rounded mb-2"
         />
+
+		  
+<select
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  className="w-full p-2 border rounded mb-2"
+>
+  <option value="">Nessuna categoria</option>
+  {categories.map((c) => (
+    <option key={c}>{c}</option>
+  ))}
+</select>
+
 
         <button
           onClick={addConfig}
