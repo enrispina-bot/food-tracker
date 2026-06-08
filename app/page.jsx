@@ -10,10 +10,7 @@ export default function Page() {
   const [config, setConfig] = useState([]);
 	const [now, setNow] = useState(new Date());
 const [category, setCategory] = useState("");
-	const categories = config
-  .filter(c => c.frequency)
-  .map(c => c.food);
-
+	
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
@@ -157,11 +154,23 @@ const currentWeek = getWeek(now);
     if (c?.frequency) stats[c.food] = { total: 0, frequency: c.frequency };
   });
 
-  logs.forEach((l) => {
-    if (stats[l.food] && getWeek(l.date) === currentWeek) {
-      stats[l.food].total++;
-    }
-  });
+
+logs.forEach((l) => {
+  if (getWeek(l.date) !== currentWeek) return;
+
+  const item = config.find(c => c.food === l.food);
+
+  if (!item) return;
+
+  const key = item.category || l.food;
+
+  if (stats[key]) {
+    stats[key].total++;
+  }
+});
+
+
+	
 
   // ✅ COLORI
   const getColor = (food) => {
@@ -313,7 +322,7 @@ const food = parts.join(" ");
 
 
 			
-          const freq = freqRaw ? Number(freqRaw) : null;
+       
 
           if (!currentMeal) throw Error();
 
