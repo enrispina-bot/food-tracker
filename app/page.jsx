@@ -8,6 +8,7 @@ import { db } from "./firebase";
 
 export default function Page() {
   const [config, setConfig] = useState([]);
+	const [now, setNow] = useState(new Date());
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
@@ -28,7 +29,29 @@ export default function Page() {
 
   const meals = ["Colazione", "Spuntino", "Pranzo", "Cena"];
 
+useEffect(() => {
+  const scheduleReset = () => {
+    const now = new Date();
 
+    const next = new Date();
+    next.setDate(now.getDate() + ((8 - now.getDay()) % 7)); // prossimo lunedì
+    next.setHours(0, 2, 0, 0); // 00:02
+
+    // se siamo già oltre → settimana prossima
+    if (now > next) {
+      next.setDate(next.getDate() + 7);
+    }
+
+    const delay = next - now;
+
+    setTimeout(() => {
+      setNow(new Date()); // ✅ trigger re-render
+      scheduleReset();    // ✅ rischedula per settimana dopo
+    }, delay);
+  };
+
+  scheduleReset();
+}, []);
 
 useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -116,7 +139,7 @@ useEffect(() => {
     );
   };
 
-  const currentWeek = getWeek(new Date());
+const currentWeek = getWeek(now);
 
   // ✅ STATS
   const stats = {};
