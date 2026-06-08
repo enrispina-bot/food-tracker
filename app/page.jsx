@@ -9,6 +9,11 @@ import { db } from "./firebase";
 export default function Page() {
   const [config, setConfig] = useState([]);
 	const [now, setNow] = useState(new Date());
+const [category, setCategory] = useState("");
+	const categories = config
+  .filter(c => c.frequency)
+  .map(c => c.food);
+
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
@@ -99,7 +104,12 @@ useEffect(() => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setLogs(data.logs || []);
-        setConfig(data.config || []);
+        const safeConfig = (data.config || []).map(c => ({
+  ...c,
+  category: c.category || null
+}));
+
+setConfig(safeConfig);
       }
 
       // ✅ IMPORTANTISSIMO
@@ -184,6 +194,10 @@ const availableFoods = config
   )
   .sort((a, b) => a.food.localeCompare(b.food));
 	
+
+const categories = config
+  .filter(c => c.frequency) // solo quelli con frequenza
+  .map(c => c.food);
 
 
 
@@ -273,7 +287,32 @@ const importLogsFromExcel = (e) => {
             return;
           }
 
-          const [food, freqRaw] = line.split(" ");
+
+// ✅ Estrai categoria tra ""
+const categoryMatch = line.match(/"([^"]+)"/);
+const category = categoryMatch ? categoryMatch[1].trim() : null;
+
+// ✅ Rimuovi la categoria dalla linea
+const cleanLine = line.replace(/"[^"]+"/, "").trim();
+
+// ✅ Estrai parti
+const parts = cleanLine.split(" ");
+
+// ✅ Frequenza (se presente)
+let freq = null;
+if (!isNaN(parts[parts.length - 1])) {
+  freq = Number(parts.pop());
+}
+
+// ✅ Nome alimento
+const food = parts.join(" ");
+
+
+
+
+
+
+			
           const freq = freqRaw ? Number(freqRaw) : null;
 
           if (!currentMeal) throw Error();
@@ -411,17 +450,41 @@ const exportLogsExcel = () => {
 
     const freqNum = frequency ? Number(frequency) : null;
 
-    const newItems =
-      configMeal === "Pranzo" || configMeal === "Cena"
-        ? [
-            { food: newFood, meal: "Pranzo", frequency: freqNum },
-            { food: newFood, meal: "Cena", frequency: freqNum }
-          ]
-        : [{ food: newFood, meal: configMeal, frequency: freqNum }];
+
+const newItems =
+  configMeal === "Pranzo" || configMeal === "Cena"
+    ? [
+        {
+          food: newFood,
+          meal: "Pranzo",
+          frequency: freqNum,
+          category: category || null
+        },
+        {
+          food: newFood,
+          meal: "Cena",
+          frequency: freqNum,
+          category: category || null
+        }
+      ]
+    : [
+        {
+          food: newFood,
+          meal: configMeal,
+          frequency: freqNum,
+          category: category || null
+        }
+      ];
+
+
+
+
+	  
 
     setConfig([...config, ...newItems]);
     setNewFood("");
     setFrequency("");
+	  setCategory("");
   };
 
   const clearConfig = () => confirm("Reset config?") && setConfig([]);
@@ -604,16 +667,37 @@ return (
   onChange={(e) => setSearch(e.target.value)}
   className="w-full p-3 border rounded-xl mb-2"
 />
-      <select
-        value={selectedFood}
-        onChange={(e) => setSelectedFood(e.target.value)}
-        className="w-full p-3 border rounded-xl mb-2"
-      >
-        <option value="">Seleziona alimento</option>
-        {availableFoods.map((c) => (
-          <option key={c.food}>{c.food}</option>
-        ))}
-      </select>
+
+
+
+<select
+  value={selectedFood}
+  onChange={(e) => setSelectedFood(e.target.value)}
+  className="w-full p-3 border rounded-xl mb-2"
+>
+  <option value="">Seleziona alimento</option>
+  {availableFoods.map((c) => (
+    <option key={c.food}>
+      {c.food} {c.category ? `→ ${c.category}` : ""}
+    </option>
+  ))}
+</select>
+
+
+		
+
+		
+<select
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  className="w-full p-2 border rounded mb-2"
+>
+  <option value="">Nessuna categoria</option>
+  {categories.map((cat) => (
+    <option key={cat}>{cat}</option>
+  ))}
+</select>
+
 
       <button
         onClick={() => addLog()}
