@@ -181,6 +181,10 @@ logs.forEach((l) => {
 
   const key = item.category || l.food;
 
+console.log("LOG:", l.food, l.meal);
+console.log("ITEM:", item);
+console.log("CATEGORY:", item?.category);
+	
   if (stats[key]) {
     stats[key].total++;
   }
