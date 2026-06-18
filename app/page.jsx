@@ -39,6 +39,60 @@ const resetWeeklyStats = () => {
 };
 
 
+	const trendStats = {};
+
+const currentWeek = getWeek(now);
+const prevWeek = currentWeek - 1;
+
+logs.forEach((l) => {
+  const week = getWeek(l.date);
+
+  const item = config.find(
+    (c) => c.food === l.food && c.meal === l.meal
+  );
+
+  // ✅ usa categoria se presente
+  const key = item?.category || l.food;
+
+  if (!trendStats[key]) {
+    trendStats[key] = {
+      name: key,
+      current: 0,
+      previous: 0
+    };
+  }
+
+  if (week === currentWeek) {
+    trendStats[key].current++;
+  } else if (week === prevWeek) {
+    trendStats[key].previous++;
+  }
+});
+
+	const trends = Object.values(trendStats)
+  .map((item) => {
+    const { current, previous } = item;
+
+    if (previous === 0 && current === 0) return null;
+
+    if (previous === 0) {
+      return {
+        ...item,
+        change: 100
+      };
+    }
+
+    const change = ((current - previous) / previous) * 100;
+
+    return {
+      ...item,
+      change: Math.round(change)
+    };
+  })
+  .filter(Boolean)
+  .sort((a, b) => b.change - a.change)
+  .slice(0, 6);
+
 
   const [selectedFood, setSelectedFood] = useState("");
   const [meal, setMeal] = useState("Colazione");
@@ -777,6 +831,27 @@ return (
         </div>
       ))}
     </div>
+
+
+	  <div className="bg-white rounded-2xl p-3 shadow mb-3">
+  <h3 className="font-semibold mb-2">📊 Trend settimanale</h3>
+
+  {trends.map((t) => {
+    const isUp = t.change >= 0;
+
+    return (
+      <div key={t.name} className="flex justify-between mb-1">
+        <span>{t.name}</span>
+
+        <span style={{
+          color: isUp ? "#34c759" : "#ff3b30"
+        }}>
+          {isUp ? "↑" : "↓"} {Math.abs(t.change)}%
+        </span>
+      </div>
+    );
+  })}
+</div>
 
     {/* CONFIG */}
     {showConfig && (
