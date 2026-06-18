@@ -22,7 +22,9 @@ export default function Page() {
 	const [now, setNow] = useState(new Date());
 const [category, setCategory] = useState("");
 
-	const monthlyStats = {};const monthlyStats((l) => {
+const monthlyStats = {};
+
+logs.forEach((l) => {
   const date = new Date(l.date);
   const month = date.getMonth();
   const nowMonth = new Date().getMonth();
@@ -41,14 +43,14 @@ const [category, setCategory] = useState("");
 
   monthlyStats[l.food][l.meal]++;
 });
-
+	
 const chartData = Object.values(monthlyStats)
-  .sort(
-    (a, b) =>
+ ) =>  .sort(
       (b.Colazione + b.Pranzo + b.Cena + b.Spuntino) -
       (a.Colazione + a.Pranzo + a.Cena + a.Spuntino)
   )
-  .slice(0, 6); // top 6 alimenti
+  .slice(0, 6);
+
 
 
 	
