@@ -38,61 +38,18 @@ const resetWeeklyStats = () => {
   setMessage("✅ Frequenze settimanali azzerate");
 };
 
+ const getWeek = (date) => {
+    const d = new Date(date);
+    return Math.ceil(
+      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+        new Date(d.getFullYear(), 0, 1).getDay() +
+        1) /
+        7
+    );
+  };
 
 
 
-const currentWeek = getWeek(now);
-const trendStats = {};
-const prevWeek = currentWeek === 1 ? 52 : currentWeek - 1;
-
-logs.forEach((l) => {
-  const week = getWeek(l.date);
-
-  const item = config.find(
-    (c) => c.food === l.food && c.meal === l.meal
-  );
-
-  // ✅ usa categoria se presente
-  const key = item?.category || l.food;
-
-  if (!trendStats[key]) {
-    trendStats[key] = {
-      name: key,
-      current: 0,
-      previous: 0
-    };
-  }
-
-  if (week === currentWeek) {
-    trendStats[key].current++;
-  } else if (week === prevWeek) {
-    trendStats[key].previous++;
-  }
-});
-
-	const trends = Object.values(trendStats)
-  .map((item) => {
-    const { current, previous } = item;
-
-    if (previous === 0 && current === 0) return null;
-
-    if (previous === 0) {
-      return {
-        ...item,
-        change: 100
-      };
-    }
-
-    const change = ((current - previous) / previous) * 100;
-
-    return {
-      ...item,
-      change: Math.round(change)
-    };
-  })
-  .filter(Boolean)
-  .sort((a, b) => b.change - a.change)
-  .slice(0, 6);
 
 
   const [selectedFood, setSelectedFood] = useState("");
@@ -206,15 +163,7 @@ setConfig(safeConfig);
   const formatDate = (date) => new Date(date).toISOString().split("T")[0];
   const today = formatDate(new Date());
 
-  const getWeek = (date) => {
-    const d = new Date(date);
-    return Math.ceil(
-      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-        new Date(d.getFullYear(), 0, 1).getDay() +
-        1) /
-        7
-    );
-  };
+ 
 
 
 
@@ -282,7 +231,58 @@ const categories = config
   .filter(c => c.frequency) // solo quelli con frequenza
   .map(c => c.food);
 
+const currentWeek = getWeek(now);
+const trendStats = {};
+const prevWeek = currentWeek === 1 ? 52 : currentWeek - 1;
 
+logs.forEach((l) => {
+  const week = getWeek(l.date);
+
+  const item = config.find(
+    (c) => c.food === l.food && c.meal === l.meal
+  );
+
+  // ✅ usa categoria se presente
+  const key = item?.category || l.food;
+
+  if (!trendStats[key]) {
+    trendStats[key] = {
+      name: key,
+      current: 0,
+      previous: 0
+    };
+  }
+
+  if (week === currentWeek) {
+    trendStats[key].current++;
+  } else if (week === prevWeek) {
+    trendStats[key].previous++;
+  }
+});
+
+	const trends = Object.values(trendStats)
+  .map((item) => {
+    const { current, previous } = item;
+
+    if (previous === 0 && current === 0) return null;
+
+    if (previous === 0) {
+      return {
+        ...item,
+        change: 100
+      };
+    }
+
+    const change = ((current - previous) / previous) * 100;
+
+    return {
+      ...item,
+      change: Math.round(change)
+    };
+  })
+  .filter(Boolean)
+  .sort((a, b) => b.change - a.change)
+  .slice(0, 6);
 
 // ✅ IMPORT EXCEL (COMPATIBILE CON IL TUO FILE)
 const importLogsFromExcel = (e) => {
