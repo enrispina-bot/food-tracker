@@ -39,10 +39,11 @@ const resetWeeklyStats = () => {
 };
 
 
-	const trendStats = {};
+
 
 const currentWeek = getWeek(now);
-const prevWeek = currentWeek - 1;
+const trendStats = {};
+const prevWeek = currentWeek === 1 ? 52 : currentWeek - 1;
 
 logs.forEach((l) => {
   const week = getWeek(l.date);
@@ -215,7 +216,7 @@ setConfig(safeConfig);
     );
   };
 
-const currentWeek = getWeek(now);
+
 
   // ✅ STATS
   const stats = {};
