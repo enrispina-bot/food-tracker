@@ -12,6 +12,16 @@ export default function Page() {
 const [category, setCategory] = useState("");
 	
   const [logs, setLogs] = useState([]);
+
+	 const getWeek = (date) => {
+    const d = new Date(date);
+    return Math.ceil(
+      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
+        new Date(d.getFullYear(), 0, 1).getDay() +
+        1) /
+        7
+    );
+  };
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
 
@@ -38,15 +48,7 @@ const resetWeeklyStats = () => {
   setMessage("✅ Frequenze settimanali azzerate");
 };
 
- const getWeek = (date) => {
-    const d = new Date(date);
-    return Math.ceil(
-      ((d - new Date(d.getFullYear(), 0, 1)) / 86400000 +
-        new Date(d.getFullYear(), 0, 1).getDay() +
-        1) /
-        7
-    );
-  };
+
 
 
 
