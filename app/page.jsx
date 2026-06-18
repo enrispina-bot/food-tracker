@@ -22,6 +22,14 @@ export default function Page() {
 	const [now, setNow] = useState(new Date());
 const [category, setCategory] = useState("");
 
+
+
+
+
+	
+  const [logs, setLogs] = useState([]);
+
+
 const monthlyStats = {};
 
 logs.forEach((l) => {
@@ -45,16 +53,13 @@ logs.forEach((l) => {
 });
 	
 const chartData = Object.values(monthlyStats)
- ) =>  .sort(
+  .sort(
+    (a, b) =>
       (b.Colazione + b.Pranzo + b.Cena + b.Spuntino) -
       (a.Colazione + a.Pranzo + a.Cena + a.Spuntino)
   )
   .slice(0, 6);
-
-
-
 	
-  const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
 
