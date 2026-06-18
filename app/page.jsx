@@ -22,6 +22,22 @@ const [category, setCategory] = useState("");
         7
     );
   };
+
+	const currentWeek = getWeek(now);
+
+
+
+const resetWeeklyStats = () => {
+  if (!confirm("Azzerare i contatori settimanali?")) return;
+
+  const newLogs = logs.filter(
+    (l) => getWeek(l.date) !== currentWeek
+  );
+
+  setLogs(newLogs);
+  setMessage("✅ Frequenze settimanali azzerate");
+};
+	
   const [message, setMessage] = useState("");
 	const [user, setUser] = useState(null);
 
@@ -37,16 +53,6 @@ const [category, setCategory] = useState("");
 
 
 
-const resetWeeklyStats = () => {
-  if (!confirm("Azzerare i contatori settimanali?")) return;
-
-  const newLogs = logs.filter(
-    (l) => getWeek(l.date) !== currentWeek
-  );
-
-  setLogs(newLogs);
-  setMessage("✅ Frequenze settimanali azzerate");
-};
 
 
 
@@ -233,7 +239,7 @@ const categories = config
   .filter(c => c.frequency) // solo quelli con frequenza
   .map(c => c.food);
 
-const currentWeek = getWeek(now);
+
 const trendStats = {};
 const prevWeek = currentWeek === 1 ? 52 : currentWeek - 1;
 
