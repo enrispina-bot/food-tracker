@@ -6,10 +6,51 @@ import * as XLSX from "xlsx";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from "recharts";
+
+
 export default function Page() {
   const [config, setConfig] = useState([]);
 	const [now, setNow] = useState(new Date());
 const [category, setCategory] = useState("");
+
+	const monthlyStats = {};const monthlyStats((l) => {
+  const date = new Date(l.date);
+  const month = date.getMonth();
+  const nowMonth = new Date().getMonth();
+
+  if (month !== nowMonth) return;
+
+  if (!monthlyStats[l.food]) {
+    monthlyStats[l.food] = {
+      name: l.food,
+      Colazione: 0,
+      Spuntino: 0,
+      Pranzo: 0,
+      Cena: 0
+    };
+  }
+
+  monthlyStats[l.food][l.meal]++;
+});
+
+const chartData = Object.values(monthlyStats)
+  .sort(
+    (a, b) =>
+      (b.Colazione + b.Pranzo + b.Cena + b.Spuntino) -
+      (a.Colazione + a.Pranzo + a.Cena + a.Spuntino)
+  )
+  .slice(0, 6); // top 6 alimenti
+
+
 	
   const [logs, setLogs] = useState([]);
   const [message, setMessage] = useState("");
@@ -777,6 +818,24 @@ return (
         </div>
       ))}
     </div>
+
+	 <div className="bg-white rounded-2xl p-3 shadow mb-3">
+  <h3 className="font-semibold mb-2">📈 Statistiche mensili</h3>
+
+  <ResponsiveContainer width="100%" height={250}>
+    <BarChart data={chartData}>
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+
+      <Bar dataKey="Colazione" fill="#007aff" />
+      <Bar dataKey="Spuntino" fill="#34c759" />
+      <Bar dataKey="Pranzo" fill="#ff9500" />
+      <Bar dataKey="Cena" fill="#ff3b30" />
+    </BarChart>
+  </ResponsiveContainer>
+</div> 
 
     {/* CONFIG */}
     {showConfig && (
