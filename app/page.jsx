@@ -129,7 +129,12 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (!user) return;
+  if (user === undefined) return;
+
+  if (!user) {
+    setLoaded(true);
+    return;
+  }
 
   const loadData = async () => {
     try {
@@ -138,56 +143,48 @@ useEffect(() => {
       if (docSnap.exists()) {
         const data = docSnap.data();
 
+        const logsArray = [];
 
+        Object.values(data).forEach(item => {
+          if (
+            item &&
+            typeof item === "object" &&
+            item.food &&
+            item.meal &&
+            item.date
+          ) {
+            logsArray.push(item);
+          }
+        });
 
-const logsArray = Object.values(data).filter(
-  (item) =>
-    item &&
-    typeof item === "object" &&
-    item.food &&
-    item.meal &&
-    item.date
-);
+        setLogs(logsArray);
+        console.log("LOGS:", logsArray.length);
 
-setLogs(logsArray);
-
-console.log("LOGS:", logsArray.length);
-		  console.log("DATA FIREBASE:", data);
-
-
-
-		  
-
-		  
         const safeConfig = (data.config || []).map(c => ({
-  ...c,
-  category: c.category || null
-}));
-if (data.config && data.config.length) {
-  setConfig(safeConfig);
-	console.log("CONFIG:", safeConfig?.length);
-} else {
-  // ✅ fallback automatico
- const uniqueFoods = [...new Set(logsArray.map(l => l.food))];
+          ...c,
+          category: c.category || null
+        }));
 
-const generatedConfig = uniqueFoods.map((food) => ({
-  food,
-  meal: logsArray.find(l => l.food === food)?.meal,
-  frequency: 999,
-  category: null
-}));
+        if (data.config && data.config.length) {
+          setConfig(safeConfig);
+        } else {
+          const uniqueFoods = [...new Set(logsArray.map(l => l.food))];
 
-setConfig(generatedConfig);
+          const generatedConfig = uniqueFoods.map((food) => ({
+            food,
+            meal: logsArray.find(l => l.food === food)?.meal,
+            frequency: 999,
+            category: null
+          }));
 
-}
-
+          setConfig(generatedConfig);
+        }
       }
 
-      // ✅ IMPORTANTISSIMO
-      setLoaded(true);
-
+      setLoaded(true); // ✅ SEMPRE
     } catch (e) {
       console.error("Errore load:", e);
+      setLoaded(true); // ✅ anche in errore
     }
   };
 
