@@ -143,19 +143,26 @@ useEffect(() => {
       if (docSnap.exists()) {
         const data = docSnap.data();
 
-        const logsArray = [];
+     const logsArray = [];
 
-        Object.values(data).forEach(item => {
-          if (
-            item &&
-            typeof item === "object" &&
-            item.food &&
-            item.meal &&
-            item.date
-          ) {
-            logsArray.push(item);
-          }
-        });
+Object.values(data).forEach(item => {
+  if (
+    item &&
+    typeof item === "object" &&
+    item.food &&
+    item.meal
+  ) {
+    logsArray.push({
+      food: item.food,
+      meal: item.meal,
+      date: item.date || new Date().toISOString() // ✅ fallback
+    });
+  }
+});
+
+	console.log("LOGS:", logsArray.length);
+console.log("ESEMPIO LOG:", logsArray[0]);
+	  
 
         setLogs(logsArray);
         console.log("LOGS:", logsArray.length);
