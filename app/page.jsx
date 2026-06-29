@@ -162,6 +162,7 @@ Object.values(data).forEach(item => {
 
 	console.log("LOGS:", logsArray.length);
 console.log("ESEMPIO LOG:", logsArray[0]);
+		  
 	  
 
         setLogs(logsArray);
