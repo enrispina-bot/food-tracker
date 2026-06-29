@@ -101,15 +101,18 @@ useEffect(() => {
 
 
 useEffect(() => {
-  // ✅ NON salvare prima del load
   if (!user || !loaded) return;
+
+  // ✅ evita di sovrascrivere Firebase con array vuoti
+  if (!logs.length) return;
 
   const saveData = async () => {
     try {
-      await setDoc(doc(db, "users", user.uid), {
-        logs,
-        config
-      });
+      await setDoc(
+        doc(db, "users", user.uid),
+        { logs, config },
+        { merge: true } // ✅ IMPORTANTISSIMO
+      );
       console.log("✅ Salvato");
     } catch (e) {
       console.error("Errore save:", e);
@@ -118,7 +121,6 @@ useEffect(() => {
 
   saveData();
 }, [logs, config, user, loaded]);
-
 
 
 	
