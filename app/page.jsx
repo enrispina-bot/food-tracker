@@ -136,14 +136,22 @@ useEffect(() => {
       if (docSnap.exists()) {
         const data = docSnap.data();
 
-const keys = Object.keys(data);
 
-// ✅ escludi config/logs se esistono
-const logsArray = keys
-  .filter(k => !isNaN(k)) // solo chiavi numeriche
-  .map(k => data[k]);
+
+const logsArray = Object.values(data).filter(
+  (item) =>
+    item &&
+    typeof item === "object" &&
+    item.food &&
+    item.meal &&
+    item.date
+);
 
 setLogs(logsArray);
+
+
+
+		  
 
 		  
         const safeConfig = (data.config || []).map(c => ({
