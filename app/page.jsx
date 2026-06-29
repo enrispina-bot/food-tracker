@@ -151,6 +151,9 @@ const logsArray = Object.values(data).filter(
 
 setLogs(logsArray);
 
+console.log("LOGS:", logsArray.length);
+		  console.log("DATA FIREBASE:", data);
+
 
 
 		  
@@ -160,8 +163,24 @@ setLogs(logsArray);
   ...c,
   category: c.category || null
 }));
+if (data.config && data.config.length) {
+  setConfig(safeConfig);
+	console.log("CONFIG:", safeConfig?.length);
+} else {
+  // ✅ fallback automatico
+ const uniqueFoods = [...new Set(logsArray.map(l => l.food))];
 
-setConfig(safeConfig);
+const generatedConfig = uniqueFoods.map((food) => ({
+  food,
+  meal: logsArray.find(l => l.food === food)?.meal,
+  frequency: 999,
+  category: null
+}));
+
+setConfig(generatedConfig);
+
+}
+
       }
 
       // ✅ IMPORTANTISSIMO
@@ -202,6 +221,9 @@ setConfig(safeConfig);
   });
 
 
+
+
+
 logs.forEach((l) => {
   if (getWeek(l.date) !== currentWeek) return;
 
@@ -209,16 +231,18 @@ logs.forEach((l) => {
     c => c.food === l.food && c.meal === l.meal
   );
 
-  if (!item) return;
+  const key = item?.category || l.food;
 
-  const key = item.category || l.food;
-
-
-	
   if (stats[key]) {
     stats[key].total++;
   }
 });
+
+
+
+
+
+	
 
 
 	
@@ -688,7 +712,9 @@ const cardStyle = {
   boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
 };
 
-
+if (!loaded) {
+  return <div className="p-4 text-center">Caricamento...</div>;
+}
 
 // ✅ BLOCCO LOGIN
 if (!user) {
